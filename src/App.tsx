@@ -94,7 +94,7 @@ function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] 
   for (let i = 0; i < 2; i++) tryPlace('diamond', 24, 1000, 'd', zone1Bot, yBot)
 
   // ── Đá và Bom: rải đều trong toàn vùng ──
-  for (let i = 0; i < 6; i++) tryPlace('rock', 27 + (Math.random() * 12 | 0), 0, '', yTop, yBot)
+  for (let i = 0; i < 8; i++) tryPlace('rock', 32 + (Math.random() * 12 | 0), 0, '', yTop, yBot)
   for (let i = 0; i < 3; i++) tryPlace('bomb', 22, 0, '', yTop + 60, yBot)
 
   return placed
