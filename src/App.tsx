@@ -77,22 +77,41 @@ function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] 
   for (let i = 0; i < 3; i++) tryPlace('bomb', 22, 0, '', yTop + 60, yBot)
   return placed
 }
-const API_URL = "https://script.google.com/macros/s/AKfycbxZI-ALtptuaYpbzgu9gqJujnjLg5VSjkh2tFlSFmoBxm1TLQY-2OqTEqiDxb5058BH/exec";
 
-// Ghi điểm mới
-async function saveScore(maYD, diem) {
-  await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain" }, // tránh CORS preflight
-    body: JSON.stringify({ maYD, diem }),
-  });
+// ── BACKEND: Google Apps Script Web App (Google Sheet: Timecode - Mã YD - Số điểm) ──
+const API_URL = "https://script.google.com/macros/s/AKfycbxZI-ALtptuaYpbzgu9gqJujnjLg5VSjkh2tFlSFmoBxm1TLQY-2OqTEqiDxb5058BH/exec"
+
+interface ScoreRecord { timecode: string; maYD: string; diem: number }
+interface ApiResponse<T> { success: boolean; error?: string; message?: string; data?: T }
+
+// Ghi điểm mới lên Google Sheet (backend tự thêm Timecode)
+async function saveScore(maYD: string, diem: number): Promise<ScoreRecord | null> {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // tránh CORS preflight
+      body: JSON.stringify({ maYD, diem }),
+    })
+    const json: ApiResponse<ScoreRecord> = await res.json()
+    if (!json.success) throw new Error(json.error || 'Lỗi không xác định khi lưu điểm')
+    return json.data ?? null
+  } catch (err) {
+    console.error('[gold-game] saveScore lỗi:', err)
+    return null
+  }
 }
 
-// Lấy bảng xếp hạng
-async function getTopScores(limit = 10) {
-  const res = await fetch(`${API_URL}?action=top&limit=${limit}`);
-  const json = await res.json();
-  return json.data;
+// Lấy bảng xếp hạng điểm cao nhất
+async function getTopScores(limit = 10): Promise<ScoreRecord[]> {
+  try {
+    const res = await fetch(`${API_URL}?action=top&limit=${limit}`)
+    const json: ApiResponse<ScoreRecord[]> = await res.json()
+    if (!json.success) throw new Error(json.error || 'Lỗi không xác định khi lấy bảng xếp hạng')
+    return json.data ?? []
+  } catch (err) {
+    console.error('[gold-game] getTopScores lỗi:', err)
+    return []
+  }
 }
 
 export default function App() {
@@ -122,6 +141,7 @@ export default function App() {
     qIntv: null as ReturnType<typeof setInterval> | null,
     tIntv: null as ReturnType<typeof setInterval> | null,
     bgSeed: 0,
+    scoreSaved: false,
   })
 
   const overlayRef = useRef<HTMLDivElement>(null)
@@ -763,6 +783,15 @@ export default function App() {
     function endGame(won?: boolean) {
       s.gs = 'result'
       clearInterval(s.tIntv!)
+
+      // ── Gửi điểm lên Google Sheet backend (Timecode - Mã YD - Số điểm) ──
+      // Mã YD dùng tên người chơi (s.pName) đã nhập ở màn hình bắt đầu.
+      // scoreSaved chặn gửi trùng nếu endGame() lỡ bị gọi nhiều lần trong 1 ván.
+      if (!s.scoreSaved) {
+        s.scoreSaved = true
+        saveScore(s.pName, s.totalYPoints)
+      }
+
       const wins = s.btcLog.filter(e => e.res === '✅ Đúng')
       const ov = overlayRef.current!
       ov.innerHTML = `
@@ -809,7 +838,7 @@ export default function App() {
       ov.innerHTML = `
         <div style="background:linear-gradient(145deg,#fffdf4,#fff8e1);border:2px solid rgba(200,140,40,.55);border-radius:28px;padding:40px 36px;max-width:420px;width:93%;box-shadow:0 32px 80px rgba(0,0,0,.15),0 0 50px rgba(255,200,0,.1);text-align:center;">
           <span style="font-size:56px;display:block;margin-bottom:6px;">⛏️</span>
-          <div style="font-size:30px;font-weight:800;background:linear-gradient(130deg,#f4a900,#e06000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;">ĐÀO Y-POINT</div>
+          <div style="font-size:30px;font-weight:800;background:linear-gradient(130deg,#f4a900,#e06000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;">ĐÀO VÀNG ONLINE</div>
           <div style="color:#9a7040;font-size:13px;margin-bottom:26px;">🏅 Bắt vàng · Trả lời câu đố · Nhận Y-Point!</div>
           <label style="font-size:13px;color:#7a4f00;margin-bottom:8px;display:block;text-align:left;">👤 Tên người chơi <span style="color:#e74c3c;">*</span></label>
           <input id="nameInp" type="text" placeholder="Nhập tên của bạn..." maxlength="20"
@@ -839,6 +868,7 @@ export default function App() {
       s.ang = 0; s.angDir = 1; s.rope = MIN_ROPE; s.carried = null; s.paused = false; s.shake = 0; s.redFlash = 0
       s.gameQuizzes = shuffle(QUESTION_BANK).slice(0, 10)
       s.bgSeed = Date.now() | 0
+      s.scoreSaved = false
       s.gs = 'swinging'
     }
 
