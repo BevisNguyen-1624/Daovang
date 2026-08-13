@@ -147,24 +147,36 @@ async function saveScore(maYD: string, diem: number): Promise<ScoreRecord | null
 
 // Xác thực Mã YD với Google Sheet NhanVien
 interface NhanVien { maYD: string; ten: string; phongBan: string; chucDanh: string }
-async function validateMaYD(maYD: string): Promise<NhanVien | null> {
-  try {
-    const res = await fetch(`${API_URL}?action=validate&maYD=${encodeURIComponent(maYD.trim())}`)
-    const json: ApiResponse<NhanVien> = await res.json()
-    // Kiểm tra chặt: data phải là object có field maYD (string)
-    // Tránh trường hợp GAS chưa deploy mới trả về { success:true, data: [...] } (array)
-    if (
-      !json.success ||
-      !json.data ||
-      Array.isArray(json.data) ||
-      typeof json.data !== 'object' ||
-      typeof (json.data as NhanVien).maYD !== 'string'
-    ) return null
-    return json.data as NhanVien
-  } catch (err) {
-    console.error('[gold-game] validateMaYD lỗi:', err)
-    return null
+async function validateMaYD(maYD: string): Promise<NhanVien | { error: string } | null> {
+  const url = `${API_URL}?action=validate&maYD=${encodeURIComponent(maYD.trim())}`
+  // Thử tối đa 2 lần, timeout 8s mỗi lần (GAS cold start ~2-4s)
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const ctrl = new AbortController()
+      const timer = setTimeout(() => ctrl.abort(), 8000)
+      const res = await fetch(url, { signal: ctrl.signal })
+      clearTimeout(timer)
+      const json: ApiResponse<NhanVien> = await res.json()
+      // Kiểm tra chặt: data phải là object có field maYD (string)
+      // Tránh GAS chưa deploy mới trả về { success:true, data:[...array] }
+      if (!json.success) return { error: (json as any).error || 'Mã YD không tồn tại trong hệ thống' }
+      if (
+        !json.data ||
+        Array.isArray(json.data) ||
+        typeof json.data !== 'object' ||
+        typeof (json.data as NhanVien).maYD !== 'string'
+      ) return { error: 'Mã YD không tồn tại trong hệ thống' }
+      return json.data as NhanVien
+    } catch (err: any) {
+      if (err?.name === 'AbortError') {
+        if (attempt === 0) continue // retry 1 lần nếu timeout
+        return { error: 'Hệ thống phản hồi quá chậm. Vui lòng thử lại.' }
+      }
+      console.error('[gold-game] validateMaYD lỗi:', err)
+      return { error: 'Không thể kết nối. Vui lòng kiểm tra mạng.' }
+    }
   }
+  return { error: 'Hệ thống phản hồi quá chậm. Vui lòng thử lại.' }
 }
 
 // Lấy bảng xếp hạng điểm cao nhất
@@ -948,23 +960,24 @@ export default function App() {
       if (errEl)   errEl.textContent = ''
 
       // ── gọi API validate ──
-      const nv = await validateMaYD(maYD)
+      const nvResult = await validateMaYD(maYD)
 
-      if (!nv) {
-        // thất bại → reset về form, hiện lỗi
-        if (inp) {
-          inp.style.borderColor = '#e74c3c'
-          inp.focus(); inp.select()
-        }
+      // thất bại → reset về form, hiện lỗi cụ thể
+      if (!nvResult || 'error' in nvResult) {
+        const msg = nvResult && 'error' in nvResult
+          ? nvResult.error
+          : 'Mã YD không tồn tại trong hệ thống'
+        if (inp) { inp.style.borderColor = '#e74c3c'; inp.focus(); inp.select() }
         if (errEl) errEl.innerHTML =
-          '❌ Mã YD <strong>' + maYD + '</strong> không tồn tại trong hệ thống.<br>' +
-          '<span style="font-size:11px;color:#b04040;">Vui lòng kiểm tra lại hoặc liên hệ HR.</span>'
+          '❌ <strong>' + msg + '</strong>' +
+          (msg.includes('tồn tại') ? '<br><span style="font-size:11px;color:#b04040;">Vui lòng kiểm tra lại hoặc liên hệ HR.</span>' : '')
         if (btn)     btn.disabled = false
         if (btnIcon) btnIcon.textContent = '🎮'
         if (btnText) btnText.textContent = 'BẮT ĐẦU CHƠI!'
         return
       }
 
+      const nv = nvResult
       // ── xác thực thành công ──
       s.pName = nv.ten || nv.maYD   // HUD hiện tên, log ghi maYD
       s.maYD  = nv.maYD
