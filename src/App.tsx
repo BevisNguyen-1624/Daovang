@@ -56,7 +56,7 @@ function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] 
   const xMin = ox - xReach + 40
   const xMax = ox + xReach - 40
   const yTop = OY + 80           // sát mép trên (gần mặt đất)
-  const yBot = OY + maxRope - 30 // sát đáy tầm móc
+  const yBot = OY + maxRope - 30   // sát đáy tầm móc
 
   // Chia 3 vùng theo chiều sâu — nhỏ/ít điểm ở trên, to/nhiều điểm ở dưới
   const zone1Bot = yTop + (yBot - yTop) * 0.33  // vùng trên   → vàng Nhỏ
@@ -77,8 +77,8 @@ function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] 
     return false
   }
 
-  // ── Vàng Nhỏ (r=30): 4 viên × 5Y — vùng trên ──
-  for (let i = 0; i < 4; i++) tryPlace('gold', 30, 5, 's', yTop, zone1Bot)
+  // ── Vàng Nhỏ (r=25): 4 viên × 5Y — vùng trên ──
+  for (let i = 0; i < 4; i++) tryPlace('gold', 25, 5, 's', yTop, zone1Bot)
 
   // ── Vàng Vừa (r=45): 4 viên — vùng giữa ──
   //    1 viên × 15Y + 3 viên × 10Y (shuffle thứ tự để không đoán được)
@@ -88,14 +88,14 @@ function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] 
   // ── Vàng To (r=65): 4 viên — vùng dưới ──
   //    2 viên × 30Y + 2 viên × 15Y (shuffle thứ tự)
   const bigPts = shuffle([30, 30, 15, 15])
-  for (let i = 0; i < 4; i++) tryPlace('gold', 65, bigPts[i], 'l', zone2Bot, yBot)
+  for (let i = 0; i < 4; i++) tryPlace('gold', 70, bigPts[i], 'l', zone2Bot, yBot)
 
   // ── Kim cương (r=24): 2 viên — vùng giữa→dưới ──
   for (let i = 0; i < 2; i++) tryPlace('diamond', 24, 1000, 'd', zone1Bot, yBot)
 
   // ── Đá và Bom: rải đều trong toàn vùng ──
-  for (let i = 0; i < 6; i++) tryPlace('rock', 20 + (Math.random() * 12 | 0), 0, '', yTop, yBot)
-  for (let i = 0; i < 3; i++) tryPlace('bomb', 35, 0, '', yTop + 60, yBot)
+  for (let i = 0; i < 6; i++) tryPlace('rock', 27 + (Math.random() * 12 | 0), 0, '', yTop, yBot)
+  for (let i = 0; i < 3; i++) tryPlace('bomb', 22, 0, '', yTop + 60, yBot)
 
   return placed
 }
