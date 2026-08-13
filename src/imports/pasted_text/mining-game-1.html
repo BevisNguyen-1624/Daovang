@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⛏️ Đào Vàng Online – BTC Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  background:radial-gradient(ellipse at 50% 30%,#0d2137 0%,#060c14 100%);
+  display:flex;justify-content:center;align-items:center;
+  min-height:100vh;font-family:'Baloo 2',cursive;overflow:hidden;
+}
+#gameCanvas{
+  display:block;border:3px solid #c8a02c;border-radius:14px;
+  box-shadow:0 0 70px rgba(200,160,44,.35),0 0 140px rgba(200,160,44,.12);
+  cursor:crosshair;
+}
+/* ── OVERLAY BASE ── */
+.ov{
+  position:fixed;inset:0;
+  background:rgba(4,10,20,.88);backdrop-filter:blur(9px);
+  display:flex;align-items:center;justify-content:center;z-index:60;
+}
+.box{
+  background:linear-gradient(145deg,#111e30,#1c3150);
+  border:2px solid rgba(200,160,44,.45);border-radius:26px;
+  padding:34px 30px;max-width:520px;width:93%;
+  box-shadow:0 28px 90px rgba(0,0,0,.65),0 0 45px rgba(200,160,44,.1);
+  color:#fff;text-align:center;
+}
+/* ── START SCREEN ── */
+#startScreen{
+  position:fixed;inset:0;z-index:200;
+  background:radial-gradient(ellipse at 50% 40%,#0d2137 0%,#060c14 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+.sb{
+  background:linear-gradient(145deg,#111e30,#1c3150);
+  border:2px solid rgba(200,160,44,.55);border-radius:28px;
+  padding:40px 36px;max-width:430px;width:93%;
+  box-shadow:0 32px 100px rgba(0,0,0,.7),0 0 60px rgba(200,160,44,.15);
+  text-align:center;
+}
+.logo{font-size:52px;margin-bottom:4px;display:block;}
+.gtitle{
+  font-size:30px;font-weight:800;
+  background:linear-gradient(130deg,#f4d03f,#e67e22);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;margin-bottom:4px;
+}
+.gsub{color:#6c8098;font-size:13px;margin-bottom:26px;}
+.ilabel{font-size:13px;color:#9eb3c6;margin-bottom:8px;display:block;text-align:left;}
+.inp{
+  width:100%;padding:12px 16px;
+  background:rgba(255,255,255,.05);
+  border:1.5px solid rgba(200,160,44,.32);border-radius:12px;
+  color:#fff;font-family:'Baloo 2',cursive;font-size:16px;outline:none;
+  transition:border-color .2s;margin-bottom:20px;
+}
+.inp:focus{border-color:#f4d03f;}
+.inp::placeholder{color:#3d5166;}
+.csec{margin-bottom:24px;text-align:left;}
+.copts{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+.copt{
+  width:38px;height:38px;border-radius:50%;cursor:pointer;
+  border:3px solid transparent;transition:transform .2s,border-color .2s;
+}
+.copt:hover{transform:scale(1.12);}
+.copt.sel{border-color:#fff;transform:scale(1.18);}
+.sbtn{
+  width:100%;padding:14px;
+  background:linear-gradient(130deg,#f4d03f,#e67e22);
+  border:none;border-radius:14px;
+  font-family:'Baloo 2',cursive;font-size:20px;font-weight:800;
+  color:#1a0a00;cursor:pointer;
+  box-shadow:0 8px 28px rgba(244,208,63,.32);
+  transition:transform .18s,box-shadow .18s;
+}
+.sbtn:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(244,208,63,.5);}
+.sbtn:active{transform:translateY(0);}
+/* ── QUIZ ── */
+.qcatch{font-size:18px;font-weight:700;color:#f4d03f;margin-bottom:14px;}
+.qtbar{
+  background:rgba(255,255,255,.1);border-radius:8px;height:22px;
+  overflow:hidden;position:relative;margin-bottom:18px;
+}
+.tfill{height:100%;background:#27ae60;border-radius:8px;transition:width 1s linear,background .5s;}
+.ttext{
+  position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;font-size:12px;font-weight:700;color:#fff;
+}
+.qq{font-size:19px;font-weight:700;color:#fff;margin-bottom:18px;line-height:1.45;}
+.qopts{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.qopt{
+  padding:11px 13px;
+  background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(255,255,255,.12);border-radius:12px;
+  color:#fff;font-family:'Baloo 2',cursive;font-size:14px;
+  cursor:pointer;text-align:left;display:flex;align-items:center;gap:9px;
+  transition:background .15s,border-color .15s,transform .1s;
+}
+.qopt:hover{background:rgba(244,208,63,.16);border-color:rgba(244,208,63,.5);transform:translateY(-1px);}
+.qopt.correct{background:rgba(39,174,96,.3);border-color:#27ae60;}
+.qopt.wrong  {background:rgba(231, 76, 60,.3);border-color:#e74c3c;}
+.oltr{
+  width:26px;height:26px;border-radius:50%;
+  background:rgba(244,208,63,.2);color:#f4d03f;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:13px;flex-shrink:0;
+}
+/* ── PRIZE ── */
+.pstars{font-size:32px;margin-bottom:6px;animation:starP .6s ease infinite alternate;}
+@keyframes starP{from{transform:scale(1);}to{transform:scale(1.18);}}
+.pemoji{font-size:68px;display:block;margin:8px 0;animation:bobP .5s ease infinite alternate;}
+@keyframes bobP{from{transform:translateY(0);}to{transform:translateY(-10px);}}
+.pcong{
+  font-size:27px;font-weight:800;
+  background:linear-gradient(130deg,#f4d03f,#e67e22);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:8px;
+}
+.pname{font-size:20px;font-weight:700;color:#fff;margin-bottom:12px;}
+.pcode{
+  background:rgba(244,208,63,.1);border:1px solid rgba(244,208,63,.3);
+  border-radius:10px;padding:10px 16px;margin-bottom:10px;font-size:13px;color:#9eb3c6;
+}
+.pcode code{color:#f4d03f;font-size:15px;font-weight:700;letter-spacing:.5px;}
+.ppts{font-size:17px;color:#2ecc71;font-weight:700;margin-bottom:8px;}
+.pbtc{font-size:11px;color:#3d5166;margin-bottom:20px;}
+.pbtn{
+  padding:12px 32px;background:linear-gradient(130deg,#27ae60,#1a7a44);
+  border:none;border-radius:12px;color:#fff;
+  font-family:'Baloo 2',cursive;font-size:17px;font-weight:700;
+  cursor:pointer;transition:transform .18s;
+}
+.pbtn:hover{transform:scale(1.06);}
+/* ── RESULT ── */
+.btcr{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;padding:14px;margin:14px 0;text-align:left;
+  max-height:210px;overflow-y:auto;
+}
+.btct{width:100%;border-collapse:collapse;font-size:12px;color:#9eb3c6;}
+.btct th{color:#f4d03f;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.1);text-align:left;}
+.btct td{padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;}
+.btct code{color:#2ecc71;font-size:11px;}
+.copybtn{
+  padding:8px 16px;background:rgba(244,208,63,.13);
+  border:1px solid rgba(244,208,63,.3);border-radius:8px;
+  color:#f4d03f;font-family:'Baloo 2',cursive;font-size:13px;
+  cursor:pointer;margin-top:10px;transition:background .2s;
+}
+.copybtn:hover{background:rgba(244,208,63,.24);}
+.rbtn{
+  padding:13px 28px;background:linear-gradient(130deg,#f4d03f,#e67e22);
+  border:none;border-radius:12px;color:#1a0a00;
+  font-family:'Baloo 2',cursive;font-size:17px;font-weight:800;
+  cursor:pointer;margin-top:14px;display:block;width:100%;transition:transform .18s;
+}
+.rbtn:hover{transform:scale(1.03);}
+/* instructions */
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);
+  color:rgba(255,255,255,.3);font-size:12px;pointer-events:none;z-index:5;}
+/* scrollbar */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(200,160,44,.3);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<!-- ── START SCREEN ── -->
+<div id="startScreen">
+  <div class="sb">
+    <span class="logo">⛏️</span>
+    <div class="gtitle">ĐÀO VÀNG ONLINE</div>
+    <div class="gsub">🏅 Bắt vàng · Trả lời câu đố · Nhận quà hấp dẫn!</div>
+
+    <label class="ilabel">👤 Tên người chơi:</label>
+    <input type="text" id="nameInp" class="inp" placeholder="Nhập tên của bạn..." maxlength="20">
+
+    <div class="csec">
+      <label class="ilabel">⛑️ Chọn màu mũ bảo hộ:</label>
+      <div class="copts" id="colorPicker">
+        <div class="copt sel" data-c="#f4d03f" style="background:#f4d03f" title="Vàng"></div>
+        <div class="copt"     data-c="#e74c3c" style="background:#e74c3c" title="Đỏ"></div>
+        <div class="copt"     data-c="#3498db" style="background:#3498db" title="Xanh dương"></div>
+        <div class="copt"     data-c="#2ecc71" style="background:#2ecc71" title="Xanh lá"></div>
+        <div class="copt"     data-c="#9b59b6" style="background:#9b59b6" title="Tím"></div>
+        <div class="copt"     data-c="#ff7f50" style="background:#ff7f50" title="Cam"></div>
+      </div>
+    </div>
+
+    <button class="sbtn" onclick="startGame()">🎮 BẮT ĐẦU CHƠI!</button>
+  </div>
+</div>
+
+<!-- ── CANVAS ── -->
+<canvas id="gameCanvas" width="800" height="582"></canvas>
+<div class="hint">🖱️ Click chuột trái để thả móc câu vàng</div>
+
+<!-- ── QUIZ ── -->
+<div id="qOv" class="ov" style="display:none">
+  <div class="box"><div id="qCon"></div></div>
+</div>
+
+<!-- ── PRIZE ── -->
+<div id="pOv" class="ov" style="display:none">
+  <div class="box"><div id="pCon"></div></div>
+</div>
+
+<!-- ── RESULT ── -->
+<div id="rOv" class="ov" style="display:none">
+  <div class="box" style="max-width:620px"><div id="rCon"></div></div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// ⚙️  CẤU HÌNH BTC – chỉnh tại đây
+// ════════════════════════════════════════════════
+const CFG = {
+  gameSec : 90,   // giây mỗi lượt chơi
+  quizSec : 30,   // giây mỗi câu hỏi
+  lives   : 3,    // số mạng
+
+  // ── CÂU HỎI (thêm/sửa thoải mái) ──
+  quizzes:[
+    {q:"Thủ đô của Việt Nam là?",
+     opts:["TP. Hồ Chí Minh","Hà Nội","Đà Nẵng","Huế"],a:1},
+    {q:"2 × 8 + 4 = ?",
+     opts:["20","22","24","26"],a:1},
+    {q:"Việt Nam có bao nhiêu tỉnh thành?",
+     opts:["58","61","63","65"],a:2},
+    {q:"Đỉnh núi cao nhất Việt Nam?",
+     opts:["Bạch Mã","Fansipan","Ngọc Linh","Lang Biang"],a:1},
+    {q:"15 × 3 – 5 = ?",
+     opts:["30","35","40","45"],a:2},
+    {q:"Sông nào chảy qua Hà Nội?",
+     opts:["Sông Cửu Long","Sông Hương","Sông Hồng","Sông Mã"],a:2},
+    {q:"100 – 37 = ?",
+     opts:["53","63","73","83"],a:1},
+    {q:"Quốc hoa của Việt Nam?",
+     opts:["Hoa sen","Hoa mai","Hoa đào","Hoa lan"],a:0},
+    {q:"Năm nào Việt Nam thống nhất đất nước?",
+     opts:["1973","1975","1977","1979"],a:1},
+    {q:"Câu nào ĐÚNG về Bác Hồ?",
+     opts:["Sinh 1889","Sinh 1890","Sinh 1891","Sinh 1892"],a:1},
+  ],
+
+  // ── PHẦN QUÀ ──
+  prizes:[
+    {emoji:"💎",name:"🏆 GIẢI ĐẶC BIỆT – 1.000.000đ", code:"JACKPOT",tier:"diamond"},
+    {emoji:"🥇",name:"Voucher Mua Sắm 500.000đ",        code:"GOLD500",tier:"gold"},
+    {emoji:"🎁",name:"Voucher 200.000đ",                 code:"GIFT200",tier:"silver"},
+    {emoji:"☕",name:"Combo Cà Phê & Bánh Ngọt",         code:"CAFE001",tier:"bronze"},
+    {emoji:"🎯",name:"Quà Tặng Bí Ẩn Đặc Biệt",        code:"MYSTERY",tier:"bronze"},
+    {emoji:"🎪",name:"Vé VIP Tham Dự Sự Kiện",          code:"VIP2025",tier:"gold"},
+  ]
+};
+// ════════════════════════════════════════════════
+
+const canvas = document.getElementById('gameCanvas');
+const ctx    = canvas.getContext('2d');
+
+// Physics consts
+const OX=400, OY=164;
+const MIN_ROPE=30, MAX_ROPE=435;
+const EXT_SPD=9, RET_EMPTY=7, RET_HEAVY=3.5;
+const SWING_SPD=0.025, MAX_SWING=Math.PI*.42;
+
+// State
+let GS='idle';
+let pName='', hatC='#f4d03f';
+let lives=3, score=0, gTimer=CFG.gameSec, paused=false;
+let tIntv=null, raf=null;
+
+// Claw
+let ang=0, angDir=1, rope=MIN_ROPE, carried=null, shake=0;
+
+// Visual
+let parts=[];
+let btcLog=[], usedQ=[];
+
+// ── OBJECTS ──
+function mkObjs(){return[
+  {id:1, t:'gold',    x:138,y:288,r:22,pts:150,sz:'s',gone:false},
+  {id:2, t:'gold',    x:672,y:305,r:22,pts:150,sz:'s',gone:false},
+  {id:3, t:'gold',    x:258,y:460,r:22,pts:150,sz:'s',gone:false},
+  {id:4, t:'gold',    x:80, y:420,r:25,pts:200,sz:'s',gone:false},
+  {id:5, t:'gold',    x:338,y:318,r:32,pts:300,sz:'m',gone:false},
+  {id:6, t:'gold',    x:562,y:395,r:32,pts:300,sz:'m',gone:false},
+  {id:7, t:'gold',    x:168,y:418,r:28,pts:250,sz:'m',gone:false},
+  {id:8, t:'gold',    x:708,y:458,r:38,pts:450,sz:'l',gone:false},
+  {id:9, t:'gold',    x:480,y:492,r:42,pts:500,sz:'l',gone:false},
+  {id:10,t:'diamond', x:400,y:538,r:22,pts:1000,sz:'d',gone:false},
+  {id:11,t:'rock',    x:288,y:297,r:30,gone:false},
+  {id:12,t:'rock',    x:622,y:272,r:25,gone:false},
+  {id:13,t:'rock',    x:452,y:358,r:35,gone:false},
+  {id:14,t:'rock',    x:98, y:515,r:28,gone:false},
+  {id:15,t:'rock',    x:685,y:532,r:32,gone:false},
+  {id:16,t:'bomb',    x:330,y:498,r:23,gone:false},
+  {id:17,t:'bomb',    x:568,y:515,r:23,gone:false},
+];}
+let objs=mkObjs();
+
+// ── AUDIO ──
+let ac=null;
+function snd(type){
+  try{
+    if(!ac) ac=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ac.createOscillator(), g=ac.createGain();
+    o.connect(g); g.connect(ac.destination);
+    const t=ac.currentTime;
+    if(type==='gold'){
+      o.type='sine';
+      o.frequency.setValueAtTime(440,t); o.frequency.linearRampToValueAtTime(900,t+.3);
+      g.gain.setValueAtTime(.25,t); g.gain.linearRampToValueAtTime(0,t+.4);
+      o.start(t); o.stop(t+.4);
+    }else if(type==='ok'){
+      o.type='sine';
+      [523,659,784].forEach((f,i)=>o.frequency.setValueAtTime(f,t+i*.11));
+      g.gain.setValueAtTime(.2,t); g.gain.linearRampToValueAtTime(0,t+.55);
+      o.start(t); o.stop(t+.55);
+    }else if(type==='fail'){
+      o.type='sawtooth';
+      o.frequency.setValueAtTime(220,t); o.frequency.linearRampToValueAtTime(110,t+.3);
+      g.gain.setValueAtTime(.15,t); g.gain.linearRampToValueAtTime(0,t+.3);
+      o.start(t); o.stop(t+.3);
+    }else if(type==='boom'){
+      o.type='sawtooth';
+      o.frequency.setValueAtTime(130,t); o.frequency.linearRampToValueAtTime(20,t+.55);
+      g.gain.setValueAtTime(.3,t); g.gain.linearRampToValueAtTime(0,t+.55);
+      o.start(t); o.stop(t+.55);
+    }
+  }catch(e){}
+}
+
+// ── DRAWING ──
+function drawBG(){
+  // Sky
+  const sky=ctx.createLinearGradient(0,0,0,185);
+  sky.addColorStop(0,'#040d18'); sky.addColorStop(1,'#0c2035');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,800,185);
+
+  // Stars
+  ctx.fillStyle='rgba(255,255,255,.65)';
+  [[55,17],[133,40],[212,11],[355,30],[525,21],[663,37],[765,7],[88,57],[435,50],[715,17],
+   [315,7],[585,45],[182,70],[470,18],[600,62]].forEach(([sx,sy])=>{
+    ctx.beginPath(); ctx.arc(sx,sy,1.1,0,Math.PI*2); ctx.fill();
+  });
+
+  // Crescent moon
+  ctx.fillStyle='#fffde7'; ctx.beginPath(); ctx.arc(730,36,20,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#050e1a'; ctx.beginPath(); ctx.arc(738,31,16,0,Math.PI*2); ctx.fill();
+
+  // Wooden platform
+  const wood=ctx.createLinearGradient(0,160,0,188);
+  wood.addColorStop(0,'#6b4a1d'); wood.addColorStop(1,'#4c3111');
+  ctx.fillStyle=wood; ctx.fillRect(0,160,800,28);
+  ctx.strokeStyle='rgba(0,0,0,.3)'; ctx.lineWidth=1;
+  for(let x=0;x<800;x+=78){
+    ctx.beginPath(); ctx.moveTo(x,160); ctx.lineTo(x,188); ctx.stroke();
+  }
+  // Plank highlight
+  ctx.fillStyle='rgba(255,255,255,.04)'; ctx.fillRect(0,161,800,4);
+
+  // Earth layers
+  [[188,80,'#8b5e3b','#7a4e2c'],
+   [268,100,'#7a4e2c','#68401e'],
+   [368,100,'#68401e','#572e10'],
+   [468,114,'#572e10','#47240a']].forEach(([y,h,c1,c2])=>{
+    const g=ctx.createLinearGradient(0,y,0,y+h);
+    g.addColorStop(0,c1); g.addColorStop(1,c2);
+    ctx.fillStyle=g; ctx.fillRect(0,y,800,h);
+  });
+
+  // Layer lines
+  ctx.strokeStyle='rgba(0,0,0,.22)'; ctx.lineWidth=2;
+  [268,368,468].forEach(y=>{ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(800,y);ctx.stroke();});
+
+  // Pebbles texture
+  ctx.fillStyle='rgba(0,0,0,.1)';
+  [[72,232],[205,263],[362,252],[535,242],[705,258],
+   [53,365],[185,382],[355,372],[515,362],[683,378],
+   [92,472],[245,492],[405,478],[575,482],[745,468]].forEach(([dx,dy])=>{
+    ctx.beginPath(); ctx.ellipse(dx,dy,5,3,.3,0,Math.PI*2); ctx.fill();
+  });
+}
+
+function drawChar(){
+  const cx=OX, ts=Date.now()*.002, arm=Math.sin(ts)*3.5;
+
+  // Machine body
+  const mb=ctx.createLinearGradient(cx-36,128,cx+36,170);
+  mb.addColorStop(0,'#8e9faa'); mb.addColorStop(1,'#5f7a87');
+  ctx.fillStyle=mb;
+  try{ctx.beginPath();ctx.roundRect(cx-36,127,72,42,7);ctx.fill();}
+  catch(e){ctx.fillRect(cx-36,127,72,42);}
+  ctx.fillStyle='rgba(255,255,255,.14)'; ctx.fillRect(cx-29,132,58,11);
+  ctx.strokeStyle='rgba(0,0,0,.2)'; ctx.lineWidth=1;
+  ctx.strokeRect(cx-36,127,72,42);
+
+  // Gear/dial on machine
+  ctx.fillStyle='rgba(0,0,0,.3)'; ctx.beginPath(); ctx.arc(cx-15,148,9,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#e74c3c'; ctx.beginPath(); ctx.arc(cx-15,148,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.4)'; ctx.beginPath(); ctx.arc(cx-13,146,2,0,Math.PI*2); ctx.fill();
+
+  // Wheels
+  [cx-22,cx+22].forEach(wx=>{
+    ctx.fillStyle='#263238'; ctx.beginPath(); ctx.arc(wx,172,11,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#546e7a'; ctx.beginPath(); ctx.arc(wx,172,6,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#eceff1'; ctx.beginPath(); ctx.arc(wx,172,2,0,Math.PI*2); ctx.fill();
+  });
+
+  // Crane arm guide
+  ctx.strokeStyle='#95a5a6'; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.moveTo(cx-33,162); ctx.lineTo(cx,164); ctx.stroke();
+  ctx.fillStyle='#7f8c8d'; ctx.beginPath(); ctx.arc(cx,164,4,0,Math.PI*2); ctx.fill();
+
+  // Torso
+  ctx.fillStyle='#e67e22';
+  try{ctx.beginPath();ctx.roundRect(cx-13,90,26,35,5);ctx.fill();}
+  catch(e){ctx.fillRect(cx-13,90,26,35);}
+  ctx.fillStyle='rgba(0,0,0,.08)'; ctx.fillRect(cx-13,96,26,3);
+
+  // Overalls pocket
+  ctx.fillStyle='rgba(0,0,0,.15)'; ctx.fillRect(cx+2,100,10,10);
+  ctx.fillStyle='rgba(255,255,255,.2)'; ctx.fillRect(cx+3,101,8,2);
+
+  // Belt
+  ctx.fillStyle='#5d4037'; ctx.fillRect(cx-13,118,26,8);
+  ctx.fillStyle='#ffd54f'; ctx.fillRect(cx-5,119,10,6);
+
+  // Legs
+  ctx.fillStyle='#1565c0';
+  ctx.fillRect(cx-12,126,10,22); ctx.fillRect(cx+2,126,10,22);
+  // Boots
+  ctx.fillStyle='#3e2723';
+  try{ctx.beginPath();ctx.roundRect(cx-14,147,13,8,2);ctx.fill();}catch(e){ctx.fillRect(cx-14,147,13,8);}
+  try{ctx.beginPath();ctx.roundRect(cx+1,147,13,8,2);ctx.fill();}catch(e){ctx.fillRect(cx+1,147,13,8);}
+
+  // Arms
+  ctx.fillStyle='#e67e22';
+  // Left arm (animated)
+  ctx.save(); ctx.translate(cx-13,98); ctx.rotate(-0.28+arm*.018);
+  ctx.fillRect(-8,0,8,22); ctx.restore();
+  // Right arm (holding lever)
+  ctx.save(); ctx.translate(cx+13,98); ctx.rotate(0.32-arm*.018);
+  ctx.fillRect(0,0,8,22); ctx.restore();
+
+  // Neck
+  ctx.fillStyle='#f5cba7'; ctx.fillRect(cx-5,82,10,10);
+
+  // Head
+  ctx.fillStyle='#f5cba7';
+  ctx.beginPath(); ctx.ellipse(cx,71,15,16,0,0,Math.PI*2); ctx.fill();
+
+  // Eyebrows
+  ctx.strokeStyle='#8b5e3b'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-8,64); ctx.lineTo(cx-3,63); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+3,63); ctx.lineTo(cx+8,64); ctx.stroke();
+
+  // Eyes
+  ctx.fillStyle='#2c3e50';
+  ctx.beginPath(); ctx.arc(cx-5,70,2.5,0,Math.PI*2); ctx.arc(cx+5,70,2.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='white';
+  ctx.beginPath(); ctx.arc(cx-4,69,1,0,Math.PI*2); ctx.arc(cx+6,69,1,0,Math.PI*2); ctx.fill();
+
+  // Smile
+  ctx.strokeStyle='#c0392b'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.arc(cx,74,6,.2,Math.PI-.2); ctx.stroke();
+
+  // Helmet
+  ctx.fillStyle=hatC;
+  ctx.beginPath(); ctx.ellipse(cx,60,20,9,0,Math.PI,0); ctx.fill();
+  ctx.fillRect(cx-20,60,40,7);
+  ctx.beginPath(); ctx.ellipse(cx,60,23,5,0,Math.PI,0); ctx.fill();
+  // Brim
+  ctx.beginPath(); ctx.ellipse(cx,67,22,4,0,0,Math.PI); ctx.fill();
+  // Lamp
+  ctx.fillStyle='#fff9c4'; ctx.beginPath(); ctx.arc(cx,54,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(255,249,196,.18)'; ctx.beginPath(); ctx.arc(cx,54,16,0,Math.PI*2); ctx.fill();
+  // Lamp dot
+  ctx.fillStyle='rgba(255,255,220,.9)'; ctx.beginPath(); ctx.arc(cx,54,2,0,Math.PI*2); ctx.fill();
+}
+
+function tipPos(){return{x:OX+Math.sin(ang)*rope, y:OY+Math.cos(ang)*rope};}
+
+function drawClaw(){
+  const {x:tx,y:ty}=tipPos();
+
+  // Carried object at tip
+  if(carried){
+    ctx.save(); ctx.translate(tx,ty); drawShape(carried,0,0); ctx.restore();
+  }
+
+  // Rope
+  ctx.strokeStyle='#c9a96e'; ctx.lineWidth=2.5; ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(OX,OY); ctx.lineTo(tx,ty); ctx.stroke();
+
+  // Hook
+  ctx.save(); ctx.translate(tx,ty); ctx.rotate(ang);
+  const hg=ctx.createLinearGradient(-9,-5,9,16);
+  hg.addColorStop(0,'#bdc3c7'); hg.addColorStop(1,'#7f8c8d');
+  ctx.fillStyle=hg;
+  ctx.beginPath();
+  ctx.moveTo(0,-6);
+  ctx.lineTo(-12,14); ctx.lineTo(-7,18); ctx.lineTo(0,7);
+  ctx.lineTo(7,18);   ctx.lineTo(12,14); ctx.lineTo(0,-6);
+  ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(-3,0); ctx.lineTo(-8,13); ctx.stroke();
+  ctx.restore();
+}
+
+function drawShape(o,ox,oy){
+  if(o.t==='gold')    drawGold(ox,oy,o.r);
+  else if(o.t==='diamond') drawDiam(ox,oy,o.r);
+  else if(o.t==='rock')    drawRock(ox,oy,o.r,o.id);
+  else if(o.t==='bomb')    drawBomb(ox,oy,o.r);
+}
+
+function drawGold(x,y,r){
+  const ts=Date.now()*.003;
+  // Glow
+  const gl=ctx.createRadialGradient(x,y,0,x,y,r*2.1);
+  gl.addColorStop(0,'rgba(255,200,0,.27)'); gl.addColorStop(1,'rgba(255,200,0,0)');
+  ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(x,y,r*2.1,0,Math.PI*2); ctx.fill();
+  // Body
+  const gr=ctx.createRadialGradient(x-r*.35,y-r*.35,0,x,y,r);
+  gr.addColorStop(0,'#fff59d'); gr.addColorStop(.4,'#fdd835');
+  gr.addColorStop(.85,'#f9a825'); gr.addColorStop(1,'#e65100');
+  ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+  // Shine
+  ctx.fillStyle='rgba(255,255,255,.55)';
+  ctx.beginPath(); ctx.ellipse(x-r*.3,y-r*.32,r*.28,r*.18,-.4,0,Math.PI*2); ctx.fill();
+  // Sparkles
+  ctx.fillStyle='rgba(255,255,255,.85)';
+  for(let i=0;i<4;i++){
+    const sa=ts+i*Math.PI/2, sr=r*1.28;
+    ctx.beginPath(); ctx.arc(x+Math.cos(sa)*sr,y+Math.sin(sa)*sr,1.5,0,Math.PI*2); ctx.fill();
+  }
+}
+
+function drawDiam(x,y,r){
+  const ts=Date.now()*.004;
+  // Glow
+  const gl=ctx.createRadialGradient(x,y,0,x,y,r*2.3);
+  gl.addColorStop(0,'rgba(100,210,255,.38)'); gl.addColorStop(1,'rgba(100,210,255,0)');
+  ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(x,y,r*2.3,0,Math.PI*2); ctx.fill();
+  // Body
+  const gr=ctx.createLinearGradient(x-r,y-r,x+r,y+r);
+  gr.addColorStop(0,'#e0f7fa'); gr.addColorStop(.35,'#80deea');
+  gr.addColorStop(.7,'#00bcd4'); gr.addColorStop(1,'#006064');
+  ctx.fillStyle=gr;
+  ctx.beginPath(); ctx.moveTo(x,y-r); ctx.lineTo(x+r,y); ctx.lineTo(x,y+r); ctx.lineTo(x-r,y); ctx.closePath(); ctx.fill();
+  // Facets
+  ctx.strokeStyle='rgba(255,255,255,.38)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(x,y-r); ctx.lineTo(x,y+r);
+  ctx.moveTo(x-r,y); ctx.lineTo(x+r,y); ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,.7)';
+  ctx.beginPath(); ctx.arc(x-r*.2,y-r*.25,r*.22,0,Math.PI*2); ctx.fill();
+  // Label
+  ctx.font=`bold ${r*.85}px Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('💎',x,y+1);
+}
+
+function drawRock(x,y,r,id){
+  const sd=(id||1)*7.3;
+  const gr=ctx.createRadialGradient(x-r*.2,y-r*.2,0,x,y,r);
+  gr.addColorStop(0,'#90a4ae'); gr.addColorStop(.6,'#607d8b'); gr.addColorStop(1,'#37474f');
+  ctx.fillStyle=gr; ctx.beginPath();
+  for(let i=0;i<=8;i++){
+    const a=(i/8)*Math.PI*2, rr=r*(.76+Math.sin(i*sd*.6+sd)*.24);
+    const px=x+Math.cos(a)*rr, py=y+Math.sin(a)*rr;
+    i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+  }
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.12)';
+  ctx.beginPath(); ctx.ellipse(x-r*.25,y-r*.25,r*.35,r*.22,-.3,0,Math.PI*2); ctx.fill();
+  ctx.font=`${r*.95}px Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('☠️',x,y+1);
+}
+
+function drawBomb(x,y,r){
+  const ts=Date.now()*.006;
+  const gr=ctx.createRadialGradient(x-r*.3,y-r*.3,0,x,y,r);
+  gr.addColorStop(0,'#455a64'); gr.addColorStop(1,'#1c313a');
+  ctx.fillStyle=gr; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.18)';
+  ctx.beginPath(); ctx.arc(x-r*.28,y-r*.28,r*.28,0,Math.PI*2); ctx.fill();
+  // Fuse
+  ctx.strokeStyle='#8d6e63'; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.moveTo(x+r*.5,y-r*.5);
+  ctx.quadraticCurveTo(x+r*1.1,y-r*1.2,x+r*.8,y-r*1.65); ctx.stroke();
+  // Spark
+  const sx=x+r*.8+Math.sin(ts*3)*3, sy=y-r*1.65-Math.abs(Math.sin(ts*5))*5;
+  ctx.fillStyle='#ff5722'; ctx.beginPath(); ctx.arc(sx,sy,3.5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ffeb3b'; ctx.beginPath(); ctx.arc(sx,sy,1.5,0,Math.PI*2); ctx.fill();
+  ctx.font=`${r*.95}px Arial`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('💣',x,y+1);
+}
+
+function drawObjs(){
+  objs.forEach(o=>{if(o.gone)return; ctx.save(); drawShape(o,o.x,o.y); ctx.restore();});
+}
+
+function drawHUD(){
+  ctx.fillStyle='rgba(0,0,0,.58)'; ctx.fillRect(0,0,800,43);
+  // Lives
+  ctx.font='13px Baloo 2'; ctx.fillStyle='#ecf0f1'; ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillText('MẠNG:',10,21);
+  for(let i=0;i<CFG.lives;i++){
+    ctx.font='20px Arial'; ctx.fillStyle=i<lives?'#e74c3c':'#3d5166';
+    ctx.fillText('♥',68+i*26,22);
+  }
+  // Score
+  ctx.fillStyle='#f4d03f'; ctx.font='bold 17px Baloo 2'; ctx.textAlign='center';
+  ctx.fillText(`⛏ ${score.toLocaleString('vi-VN')} điểm`,400,21);
+  // Timer
+  const tc=gTimer<=20?'#e74c3c':gTimer<=40?'#f39c12':'#2ecc71';
+  ctx.fillStyle=tc; ctx.font='bold 17px Baloo 2'; ctx.textAlign='right';
+  ctx.fillText(`⏱ ${gTimer}s`,790,21);
+  // Name tag
+  ctx.fillStyle='rgba(255,255,255,.42)'; ctx.font='11px Baloo 2'; ctx.textAlign='left';
+  ctx.fillText(pName,10,37);
+}
+
+function drawParts(){
+  parts=parts.filter(p=>p.life>0);
+  parts.forEach(p=>{
+    ctx.save(); ctx.globalAlpha=Math.max(0,p.life/p.max);
+    ctx.fillStyle=p.c; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); ctx.restore();
+    p.x+=p.vx; p.y+=p.vy; p.vy+=.2; p.life--;
+  });
+}
+
+function burst(x,y,type,n=14){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, sp=2+Math.random()*6;
+    parts.push({
+      x,y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp-3, r:3+Math.random()*5,
+      c:type==='gold'?`hsl(${38+Math.random()*25},100%,${55+Math.random()*30}%)`:
+        type==='diamond'?`hsl(${185+Math.random()*30},100%,70%)`:
+        type==='bomb'?`hsl(${Math.random()*30},100%,55%)`:`hsl(28,45%,55%)`,
+      life:40+Math.random()*20, max:60
+    });
+  }
+}
+
+// ── GAME LOGIC ──
+function collision(){
+  const {x,y}=tipPos();
+  for(const o of objs){
+    if(o.gone) continue;
+    if(Math.hypot(x-o.x,y-o.y)<o.r+9) return o;
+  }
+  return null;
+}
+
+function handleHit(o){
+  o.gone=true; carried=o; GS='retracting';
+  if(o.t==='gold'||o.t==='diamond'){snd('gold');burst(o.x,o.y,o.t);}
+  else if(o.t==='rock'){snd('fail');burst(o.x,o.y,'rock',10);shake=12;}
+  else{snd('boom');burst(o.x,o.y,'bomb',22);shake=22;}
+}
+
+function onRetract(){
+  const o=carried; carried=null; rope=MIN_ROPE;
+  if(!o){GS='swinging';return;}
+  if(o.t==='gold'||o.t==='diamond'){paused=true;GS='quiz';doQuiz(o);}
+  else if(o.t==='rock'){loseLife();GS='swinging';}
+  else{loseLife();GS='swinging';}
+}
+
+function loseLife(){
+  lives--; shake=20; snd('boom');
+  if(lives<=0) setTimeout(()=>endGame(),350);
+}
+
+function update(){
+  if(GS==='swinging'){
+    ang+=SWING_SPD*angDir;
+    if(ang>MAX_SWING){ang=MAX_SWING;angDir=-1;}
+    if(ang<-MAX_SWING){ang=-MAX_SWING;angDir=1;}
+  }else if(GS==='extending'){
+    rope+=EXT_SPD;
+    const {y}=tipPos();
+    if(y>=577||rope>=MAX_ROPE){rope=Math.min(rope,MAX_ROPE);GS='retracting';}
+    const h=collision(); if(h) handleHit(h);
+  }else if(GS==='retracting'){
+    const spd=carried&&(carried.t==='gold'||carried.t==='diamond')
+      ?(carried.r>35?RET_HEAVY:RET_HEAVY+1.2):RET_EMPTY;
+    rope-=spd;
+    if(rope<=MIN_ROPE){rope=MIN_ROPE;onRetract();}
+  }
+  if(shake>.3) shake*=.8; else shake=0;
+}
+
+function frame(){
+  ctx.save();
+  if(shake>.5) ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  ctx.clearRect(-25,-25,850,640);
+  drawBG(); drawObjs(); drawClaw(); drawChar(); drawParts(); drawHUD();
+  ctx.restore();
+  raf=requestAnimationFrame(frame);
+}
+
+// ── QUIZ ──
+let qObj=null,qData=null,qTmr=0,qIntv=null;
+
+function rndQ(){
+  const av=CFG.quizzes.filter((_,i)=>!usedQ.includes(i));
+  if(!av.length) usedQ=[];
+  const pool=av.length?av:CFG.quizzes;
+  const q=pool[Math.floor(Math.random()*pool.length)];
+  usedQ.push(CFG.quizzes.indexOf(q));
+  return q;
+}
+
+function getPrize(sz){
+  const p=
+    sz==='d'?CFG.prizes.filter(p=>p.tier==='diamond'||p.tier==='gold'):
+    sz==='l'?CFG.prizes.filter(p=>p.tier==='gold'||p.tier==='silver'):
+    sz==='m'?CFG.prizes.filter(p=>p.tier==='silver'||p.tier==='bronze'):
+    CFG.prizes.filter(p=>p.tier==='bronze');
+  const pool=p.length?p:CFG.prizes;
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function doQuiz(o){
+  qObj=o; qData=rndQ(); qTmr=CFG.quizSec;
+  document.getElementById('qCon').innerHTML=`
+    <div class="qcatch">
+      ${o.t==='diamond'?'💎 Kim Cương Quý Hiếm! Trả lời để nhận quà VIP!':'🥇 Đã bắt được Vàng! Hãy trả lời câu hỏi:'}
+    </div>
+    <div class="qtbar">
+      <div class="tfill" id="tfill" style="width:100%"></div>
+      <div class="ttext" id="ttext">${qTmr}s</div>
+    </div>
+    <p class="qq">${qData.q}</p>
+    <div class="qopts">
+      ${qData.opts.map((op,i)=>`
+        <button class="qopt" id="opt${i}" onclick="answer(${i})">
+          <span class="oltr">${['A','B','C','D'][i]}</span>${op}
+        </button>`).join('')}
+    </div>
+  `;
+  document.getElementById('qOv').style.display='flex';
+  qIntv=setInterval(()=>{
+    qTmr--;
+    const f=document.getElementById('tfill'), tt=document.getElementById('ttext');
+    if(f){f.style.width=(qTmr/CFG.quizSec*100)+'%';f.style.background=qTmr<10?'#e74c3c':'#27ae60';}
+    if(tt) tt.textContent=qTmr+'s';
+    if(qTmr<=0){clearInterval(qIntv);answer(-1);}
+  },1000);
+}
+
+window.answer=function(idx){
+  clearInterval(qIntv);
+  const correct=idx===qData.a;
+  // Highlight buttons briefly
+  if(idx>=0){
+    const b=document.getElementById('opt'+idx);
+    if(b) b.classList.add(correct?'correct':'wrong');
+  }
+  setTimeout(()=>{
+    document.getElementById('qOv').style.display='none';
+    if(correct){
+      snd('ok');
+      const prize=getPrize(qObj.sz);
+      score+=qObj.pts;
+      const uid=`${prize.code}-${pName.toUpperCase().replace(/\s+/g,'').slice(0,5)||'P'}-${Date.now().toString(36).toUpperCase().slice(-4)}`;
+      btcLog.push({
+        time:new Date().toLocaleTimeString('vi'),
+        player:pName, q:qData.q,
+        ans:qData.opts[idx], res:'✅ Đúng',
+        prize:prize.name, code:uid, pts:qObj.pts
+      });
+      showPrize(prize,qObj.pts,uid);
+    }else{
+      snd('fail'); shake=8;
+      score+=Math.floor(qObj.pts*.1);
+      btcLog.push({
+        time:new Date().toLocaleTimeString('vi'),
+        player:pName, q:qData.q,
+        ans:idx>=0?qData.opts[idx]:'⏰ Hết giờ',
+        res:'❌ Sai', prize:'—', code:'—', pts:Math.floor(qObj.pts*.1)
+      });
+      paused=false; GS='swinging';
+      checkDone();
+    }
+    qObj=null; qData=null;
+  },correct?400:600);
+};
+
+function showPrize(prize,pts,code){
+  document.getElementById('pCon').innerHTML=`
+    <div class="pstars">⭐ ⭐ ⭐</div>
+    <span class="pemoji">${prize.emoji}</span>
+    <div class="pcong">CHÚC MỪNG!</div>
+    <div class="pname">${prize.name}</div>
+    <div class="pcode">🎫 Mã xác nhận: <code>${code}</code></div>
+    <div class="ppts">+${pts.toLocaleString('vi-VN')} điểm</div>
+    <div class="pbtc">📋 Đã ghi nhận · Ban Tổ Chức xác nhận</div>
+    <button class="pbtn" onclick="closePrize()">🎮 Tiếp tục chơi!</button>
+  `;
+  burst(400,300,'gold',22);
+  document.getElementById('pOv').style.display='flex'; GS='prize';
+}
+
+window.closePrize=function(){
+  document.getElementById('pOv').style.display='none';
+  paused=false; GS='swinging'; checkDone();
+};
+
+function checkDone(){
+  if(objs.filter(o=>!o.gone&&(o.t==='gold'||o.t==='diamond')).length===0)
+    setTimeout(()=>endGame(true),500);
+}
+
+// ── TIMER & END ──
+function startTimer(){
+  clearInterval(tIntv);
+  tIntv=setInterval(()=>{
+    if(paused||GS==='quiz'||GS==='prize'||GS==='result'||GS==='idle') return;
+    gTimer--;
+    if(gTimer<=0){clearInterval(tIntv);endGame();}
+  },1000);
+}
+
+function endGame(won){
+  GS='result'; clearInterval(tIntv);
+  const wins=btcLog.filter(e=>e.res==='✅ Đúng');
+  document.getElementById('rCon').innerHTML=`
+    <h2 style="color:${lives<=0?'#e74c3c':'#f4d03f'};font-size:28px;margin-bottom:8px">
+      ${lives<=0?'💔 HẾT MẠNG':won?'🏆 CHIẾN THẮNG!':'⏱ HẾT GIỜ!'}
+    </h2>
+    <div style="font-size:34px;color:#f4d03f;font-weight:800;margin:8px 0">
+      ${score.toLocaleString('vi-VN')} điểm
+    </div>
+    <div style="color:#6c8098;margin-bottom:16px">
+      Người chơi: <strong style="color:white">${pName}</strong>
+      &nbsp;|&nbsp; Mạng còn: ${Math.max(0,lives)} ❤
+    </div>
+    ${wins.length>0?`
+    <div class="btcr">
+      <strong style="color:#f4d03f;font-size:14px">📋 BÁO CÁO PHẦN QUÀ – BAN TỔ CHỨC</strong>
+      <table class="btct" style="margin-top:10px">
+        <thead><tr><th>Giờ</th><th>Câu hỏi</th><th>Phần quà</th><th>Mã xác nhận</th></tr></thead>
+        <tbody>
+          ${wins.map(e=>`<tr>
+            <td>${e.time}</td>
+            <td style="max-width:130px">${e.q}</td>
+            <td>${e.prize}</td>
+            <td><code>${e.code}</code></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      <button class="copybtn" onclick="copyLog()">📋 Copy dữ liệu cho BTC</button>
+    </div>`
+    :`<div style="color:#3d5166;margin:14px 0;font-size:14px">Chưa có phần quà nào được nhận</div>`}
+    <button class="rbtn" onclick="resetToStart()">🔄 Chơi lại</button>
+  `;
+  document.getElementById('rOv').style.display='flex';
+}
+
+window.copyLog=function(){
+  const txt='=== BÁO CÁO ĐÀO VÀNG ONLINE – BAN TỔ CHỨC ===\n'
+    +btcLog.map(e=>
+      `[${e.time}] ${e.player} | ${e.q} | TL: ${e.ans} | ${e.res} | Quà: ${e.prize} | Mã: ${e.code} | +${e.pts}đ`
+    ).join('\n');
+  navigator.clipboard.writeText(txt)
+    .then(()=>alert('✅ Đã copy! Dán vào file Google Sheet / Excel của BTC.'))
+    .catch(()=>prompt('Copy dữ liệu BTC:',txt));
+};
+
+// ── FLOW ──
+window.startGame=function(){
+  const n=document.getElementById('nameInp').value.trim();
+  pName=n||'Người chơi';
+  document.getElementById('startScreen').style.display='none';
+  lives=CFG.lives; score=0; gTimer=CFG.gameSec;
+  objs=mkObjs(); parts=[]; btcLog=[]; usedQ=[];
+  ang=0; angDir=1; rope=MIN_ROPE; carried=null; paused=false; shake=0;
+  GS='swinging'; startTimer();
+};
+
+window.resetToStart=function(){
+  document.getElementById('rOv').style.display='none';
+  document.getElementById('startScreen').style.display='flex';
+  GS='idle';
+};
+
+// ── INPUT ──
+canvas.addEventListener('click',()=>{if(GS==='swinging') GS='extending';});
+
+// Color picker
+document.getElementById('colorPicker').querySelectorAll('.copt').forEach(el=>{
+  el.addEventListener('click',()=>{
+    document.querySelectorAll('.copt').forEach(e=>e.classList.remove('sel'));
+    el.classList.add('sel'); hatC=el.dataset.c;
+  });
+});
+
+// ── PREVIEW LOOP (runs before game starts too) ──
+(function loop(){
+  ctx.save();
+  if(shake>.5) ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
+  ctx.clearRect(-25,-25,850,640);
+  drawBG();
+  // Only swing visually in idle/swinging states
+  if(GS==='idle'){
+    ang+=SWING_SPD*angDir;
+    if(ang>MAX_SWING){ang=MAX_SWING;angDir=-1;}
+    if(ang<-MAX_SWING){ang=-MAX_SWING;angDir=1;}
+  }else{
+    update();
+  }
+  drawObjs(); drawClaw(); drawChar(); drawParts();
+  if(GS!=='idle') drawHUD();
+  ctx.restore();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

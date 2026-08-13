@@ -1,0 +1,11 @@
+{
+  "title": "Minigame Dao vang",
+  "description": "Engage in a dynamic gold mining minigame featuring randomized layouts and quiz questions with vibrant 3D visuals for an interactive experience.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
