@@ -47,27 +47,35 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] {
+function makeObjs(CW: number, _CH: number, ox: number, maxRope: number): Obj[] {
   const placed: Obj[] = []
   let id = 1
 
-  // Toàn bộ spawn giới hạn trong đúng tầm với của móc câu (arc + rope)
+  // ── Tầm với ngang của móc câu (theo arc MAX_SWING × rope) ──
   const xReach = Math.sin(MAX_SWING) * maxRope
-  const xMin = ox - xReach + 40
-  const xMax = ox + xReach - 40
+  // Mở rộng sang 2 bên: bỏ padding cứng +40 để vùng spawn phủ đều màn hình
+  const xMin = Math.max(30, ox - xReach - 10)
+  const xMax = Math.min(CW - 30, ox + xReach + 10)
+
   const yTop = OY + 80           // sát mép trên (gần mặt đất)
-  const yBot = OY + maxRope - 30   // sát đáy tầm móc
+  const yBot     = OY + maxRope - 30  // đáy tổng (đá/bom/vàng to)
+  // Kim cương cần đủ khoảng để hook reach: giới hạn cao hơn đáy 80px
+  const yBotSafe = OY + maxRope - 80  // đáy an toàn cho kim cương
 
-  // Chia 3 vùng theo chiều sâu — nhỏ/ít điểm ở trên, to/nhiều điểm ở dưới
-  const zone1Bot = yTop + (yBot - yTop) * 0.33  // vùng trên   → vàng Nhỏ
-  const zone2Bot = yTop + (yBot - yTop) * 0.66  // vùng giữa  → vàng Vừa
-  //                                               vùng dưới  → vàng To
+  // Chia 3 vùng theo chiều sâu
+  const zone1Bot = yTop + (yBot - yTop) * 0.33  // vùng trên  → vàng Nhỏ
+  const zone2Bot = yTop + (yBot - yTop) * 0.66  // vùng giữa → vàng Vừa
 
-  const tryPlace = (t: ObjType, r: number, pts: number, sz: string, minY: number, maxY: number): boolean => {
+  // tryPlace với optional xMin/xMax override để kiểm soát phân vùng ngang
+  const tryPlace = (
+    t: ObjType, r: number, pts: number, sz: string,
+    minY: number, maxY: number,
+    lx = xMin, rx = xMax,
+  ): boolean => {
     const y0 = Math.max(minY, yTop), y1 = Math.min(maxY, yBot)
     if (y1 - y0 < r * 2) return false
     for (let attempt = 0; attempt < 80; attempt++) {
-      const x = xMin + r + Math.random() * (xMax - xMin - r * 2)
+      const x = lx + r + Math.random() * (rx - lx - r * 2)
       const y = y0 + r + Math.random() * (y1 - y0 - r * 2)
       if (!placed.some(o => Math.hypot(x - o.x, y - o.y) < r + o.r + 16)) {
         placed.push({ id: id++, t, x, y, r, pts, sz, gone: false })
@@ -77,25 +85,39 @@ function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] 
     return false
   }
 
-  // ── Vàng Nhỏ (r=25): 4 viên × 5Y — vùng trên ──
-  for (let i = 0; i < 4; i++) tryPlace('gold', 25, 5, 's', yTop, zone1Bot)
+  // Điểm giữa ngang để chia trái/phải đối xứng
+  const midX = (xMin + xMax) / 2
 
-  // ── Vàng Vừa (r=45): 4 viên — vùng giữa ──
-  //    1 viên × 15Y + 3 viên × 10Y (shuffle thứ tự để không đoán được)
+  // ── Vàng Nhỏ (r=20): 6 viên × 5Y — vùng trên, 3 trái + 3 phải ──
+  for (let i = 0; i < 3; i++) tryPlace('gold', 20, 5, 's', yTop, zone1Bot, xMin, midX)
+  for (let i = 0; i < 3; i++) tryPlace('gold', 20, 5, 's', yTop, zone1Bot, midX, xMax)
+
+  // ── Vàng Vừa (r=36): 4 viên — vùng giữa ──
+  //    Tăng từ r=30 → r=36 (~30% lớn hơn vàng Nhỏ về bán kính, ~69% về diện tích)
   const midPts = shuffle([15, 10, 10, 10])
-  for (let i = 0; i < 4; i++) tryPlace('gold', 45, midPts[i], 'm', zone1Bot, zone2Bot)
+  tryPlace('gold', 36, midPts[0], 'm', zone1Bot, zone2Bot, xMin, midX)
+  tryPlace('gold', 36, midPts[1], 'm', zone1Bot, zone2Bot, midX, xMax)
+  tryPlace('gold', 36, midPts[2], 'm', zone1Bot, zone2Bot, xMin, midX)
+  tryPlace('gold', 36, midPts[3], 'm', zone1Bot, zone2Bot, midX, xMax)
 
-  // ── Vàng To (r=85): 4 viên — vùng dưới ──
-  //    2 viên × 30Y + 2 viên × 15Y (shuffle thứ tự)
+  // ── Vàng To (r=52): 4 viên — vùng dưới ──
+  //    Tăng từ r=46 → r=52 (~44% lớn hơn vàng Vừa r=36 về bán kính)
   const bigPts = shuffle([30, 30, 15, 15])
-  for (let i = 0; i < 4; i++) tryPlace('gold', 85, bigPts[i], 'l', zone2Bot, yBot)
+  tryPlace('gold', 52, bigPts[0], 'l', zone2Bot, yBot, xMin, midX)
+  tryPlace('gold', 52, bigPts[1], 'l', zone2Bot, yBot, midX, xMax)
+  tryPlace('gold', 52, bigPts[2], 'l', zone2Bot, yBot, xMin, midX)
+  tryPlace('gold', 52, bigPts[3], 'l', zone2Bot, yBot, midX, xMax)
 
-  // ── Kim cương (r=24): 2 viên — vùng giữa→dưới ──
-  for (let i = 0; i < 2; i++) tryPlace('diamond', 24, 1000, 'd', zone1Bot, yBot)
+  // ── Kim cương (r=24): 2 viên — spawn trong yBotSafe để hook reach được ──
+  //    Mỗi viên 1 bên trái/phải
+  tryPlace('diamond', 24, 1000, 'd', zone1Bot, yBotSafe, xMin, midX)
+  tryPlace('diamond', 24, 1000, 'd', zone1Bot, yBotSafe, midX, xMax)
 
-  // ── Đá và Bom: rải đều trong toàn vùng ──
-  for (let i = 0; i < 8; i++) tryPlace('rock', 32 + (Math.random() * 12 | 0), 0, '', yTop, yBot)
-  for (let i = 0; i < 3; i++) tryPlace('bomb', 22, 0, '', yTop + 60, yBot)
+  // ── Đá và Bom: rải đều 2 bên toàn vùng ──
+  for (let i = 0; i < 4; i++) tryPlace('rock', 20 + (Math.random() * 12 | 0), 0, '', yTop, yBot, xMin, midX)
+  for (let i = 0; i < 4; i++) tryPlace('rock', 20 + (Math.random() * 12 | 0), 0, '', yTop, yBot, midX, xMax)
+  for (let i = 0; i < 2; i++) tryPlace('bomb', 22, 0, '', yTop + 60, yBot, xMin, midX)
+  tryPlace('bomb', 22, 0, '', yTop + 60, yBot, midX, xMax)
 
   return placed
 }
@@ -123,6 +145,28 @@ async function saveScore(maYD: string, diem: number): Promise<ScoreRecord | null
   }
 }
 
+// Xác thực Mã YD với Google Sheet NhanVien
+interface NhanVien { maYD: string; ten: string; phongBan: string; chucDanh: string }
+async function validateMaYD(maYD: string): Promise<NhanVien | null> {
+  try {
+    const res = await fetch(`${API_URL}?action=validate&maYD=${encodeURIComponent(maYD.trim())}`)
+    const json: ApiResponse<NhanVien> = await res.json()
+    // Kiểm tra chặt: data phải là object có field maYD (string)
+    // Tránh trường hợp GAS chưa deploy mới trả về { success:true, data: [...] } (array)
+    if (
+      !json.success ||
+      !json.data ||
+      Array.isArray(json.data) ||
+      typeof json.data !== 'object' ||
+      typeof (json.data as NhanVien).maYD !== 'string'
+    ) return null
+    return json.data as NhanVien
+  } catch (err) {
+    console.error('[gold-game] validateMaYD lỗi:', err)
+    return null
+  }
+}
+
 // Lấy bảng xếp hạng điểm cao nhất
 async function getTopScores(limit = 10): Promise<ScoreRecord[]> {
   try {
@@ -141,6 +185,7 @@ export default function App() {
   const stateRef = useRef({
     gs: 'idle' as string,
     pName: '',
+    maYD: '',
     lives: LIVES,
     score: 0,
     totalYPoints: 0,
@@ -160,8 +205,6 @@ export default function App() {
     ac: null as AudioContext | null,
     qObj: null as Obj | null,
     qData: null as Quiz | null,
-    qIntv: null as ReturnType<typeof setInterval> | null,
-    tIntv: null as ReturnType<typeof setInterval> | null,
     bgSeed: 0,
     scoreSaved: false,
   })
@@ -804,14 +847,13 @@ export default function App() {
 
     function endGame(won?: boolean) {
       s.gs = 'result'
-      clearInterval(s.tIntv!)
 
       // ── Gửi điểm lên Google Sheet backend (Timecode - Mã YD - Số điểm) ──
       // Mã YD dùng tên người chơi (s.pName) đã nhập ở màn hình bắt đầu.
       // scoreSaved chặn gửi trùng nếu endGame() lỡ bị gọi nhiều lần trong 1 ván.
       if (!s.scoreSaved) {
         s.scoreSaved = true
-        saveScore(s.pName, s.totalYPoints)
+        saveScore(s.maYD || s.pName, s.totalYPoints)
       }
 
       const wins = s.btcLog.filter(e => e.res === '✅ Đúng')
@@ -862,29 +904,72 @@ export default function App() {
           <span style="font-size:56px;display:block;margin-bottom:6px;">⛏️</span>
           <div style="font-size:30px;font-weight:800;background:linear-gradient(130deg,#f4a900,#e06000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;">ĐÀO VÀNG ONLINE</div>
           <div style="color:#9a7040;font-size:13px;margin-bottom:26px;">🏅 Bắt vàng · Trả lời câu đố · Nhận Y-Point!</div>
-          <label style="font-size:13px;color:#7a4f00;margin-bottom:8px;display:block;text-align:left;">👤 Tên người chơi <span style="color:#e74c3c;">*</span></label>
-          <input id="nameInp" type="text" placeholder="Nhập tên của bạn..." maxlength="20"
-            style="width:100%;padding:12px 16px;background:rgba(255,255,255,.7);border:1.5px solid rgba(200,140,40,.4);border-radius:12px;color:#1a0800;font-size:16px;font-family:inherit;outline:none;margin-bottom:6px;box-sizing:border-box;"
+
+          <label style="font-size:13px;color:#7a4f00;margin-bottom:8px;display:block;text-align:left;">🪪 Mã nhân viên (Mã YD) <span style="color:#e74c3c;">*</span></label>
+          <input id="ydInp" type="text" placeholder="VD: YD12345" maxlength="20"
+            style="width:100%;padding:12px 16px;background:rgba(255,255,255,.7);border:1.5px solid rgba(200,140,40,.4);border-radius:12px;color:#1a0800;font-size:16px;font-family:inherit;outline:none;margin-bottom:6px;box-sizing:border-box;text-transform:uppercase;letter-spacing:.5px;"
             onfocus="this.style.borderColor='#f4a900'" onblur="this.style.borderColor='rgba(200,140,40,.4)'"
+            oninput="this.value=this.value.toUpperCase()"
             onkeydown="if(event.key==='Enter')window.__startGame()" />
-          <div id="nameErr" style="color:#e74c3c;font-size:12px;min-height:18px;margin-bottom:14px;text-align:left;"></div>
-          <button onclick="window.__startGame()" style="width:100%;padding:14px;background:linear-gradient(130deg,#f4a900,#e06000);border:none;border-radius:14px;font-size:20px;font-weight:800;font-family:inherit;color:#fff;cursor:pointer;box-shadow:0 8px 28px rgba(244,169,0,.35);">🎮 BẮT ĐẦU CHƠI!</button>
+          <div id="ydErr" style="color:#e74c3c;font-size:12px;min-height:18px;margin-bottom:14px;text-align:left;"></div>
+
+          <button id="startBtn" onclick="window.__startGame()"
+            style="width:100%;padding:14px;background:linear-gradient(130deg,#f4a900,#e06000);border:none;border-radius:14px;font-size:20px;font-weight:800;font-family:inherit;color:#fff;cursor:pointer;box-shadow:0 8px 28px rgba(244,169,0,.35);display:flex;align-items:center;justify-content:center;gap:10px;">
+            <span id="startBtnIcon">🎮</span>
+            <span id="startBtnText">BẮT ĐẦU CHƠI!</span>
+          </button>
         </div>
       `
       ov.style.display = 'flex'
+      // focus auto
+      setTimeout(() => (document.getElementById('ydInp') as HTMLInputElement)?.focus(), 80)
     }
 
-    ;(window as any).__startGame = () => {
-      const inp = document.getElementById('nameInp') as HTMLInputElement
-      const errEl = document.getElementById('nameErr')
-      const name = inp?.value.trim() ?? ''
-      if (!name) {
-        if (inp) { inp.style.borderColor = '#e74c3c'; inp.focus() }
-        if (errEl) errEl.textContent = '⚠️ Vui lòng nhập tên trước khi bắt đầu!'
+    ;(window as any).__startGame = async () => {
+      const inp    = document.getElementById('ydInp')    as HTMLInputElement
+      const errEl  = document.getElementById('ydErr')
+      const btn    = document.getElementById('startBtn') as HTMLButtonElement
+      const btnIcon = document.getElementById('startBtnIcon')
+      const btnText = document.getElementById('startBtnText')
+
+      const maYD = inp?.value.trim().toUpperCase() ?? ''
+
+      // ── validate local ──
+      if (!maYD) {
+        if (inp)   { inp.style.borderColor = '#e74c3c'; inp.focus() }
+        if (errEl) errEl.textContent = '⚠️ Vui lòng nhập Mã YD trước khi bắt đầu!'
         return
       }
-      s.pName = name
+
+      // ── loading state ──
+      if (btn) btn.disabled = true
+      if (btnIcon) btnIcon.textContent = '⏳'
+      if (btnText) btnText.textContent = 'Đang xác thực...'
+      if (errEl)   errEl.textContent = ''
+
+      // ── gọi API validate ──
+      const nv = await validateMaYD(maYD)
+
+      if (!nv) {
+        // thất bại → reset về form, hiện lỗi
+        if (inp) {
+          inp.style.borderColor = '#e74c3c'
+          inp.focus(); inp.select()
+        }
+        if (errEl) errEl.innerHTML =
+          '❌ Mã YD <strong>' + maYD + '</strong> không tồn tại trong hệ thống.<br>' +
+          '<span style="font-size:11px;color:#b04040;">Vui lòng kiểm tra lại hoặc liên hệ HR.</span>'
+        if (btn)     btn.disabled = false
+        if (btnIcon) btnIcon.textContent = '🎮'
+        if (btnText) btnText.textContent = 'BẮT ĐẦU CHƠI!'
+        return
+      }
+
+      // ── xác thực thành công ──
+      s.pName = nv.ten || nv.maYD   // HUD hiện tên, log ghi maYD
+      s.maYD  = nv.maYD
       overlayRef.current!.style.display = 'none'
+
       s.lives = LIVES; s.score = 0; s.totalYPoints = 0
       s.objs = makeObjs(CW, CH, OX, MAX_ROPE); s.parts = []; s.confetti = []; s.btcLog = []; s.usedQ = []
       s.ang = 0; s.angDir = 1; s.rope = MIN_ROPE; s.carried = null; s.paused = false; s.shake = 0; s.redFlash = 0
@@ -954,7 +1039,6 @@ export default function App() {
 
     return () => {
       cancelAnimationFrame(rafId)
-      clearInterval(s.tIntv!); clearInterval(s.qIntv!)
       canvas.removeEventListener('click', handleClick)
       ;['__answer','__closePrize','__resetToStart','__copyLog','__startGame'].forEach(k => delete (window as any)[k])
     }
