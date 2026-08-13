@@ -6,22 +6,23 @@ import { useEffect, useRef, useCallback } from 'react'
 // opts: mảng 4 đáp án
 // a   : index đáp án đúng (0-3)
 // yp  : số Y-Point thưởng khi trả lời đúng
+// Y-Point giờ gắn theo kích thước viên vàng (trong makeObjs), không theo câu hỏi
 const QUESTION_BANK = [
-  { q: 'Thủ đô của Việt Nam là?',                      opts: ['TP. Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Huế'],                     a: 1, yp: 200 },
-  { q: '2 × 8 + 4 = ?',                                opts: ['20', '22', '24', '26'],                                               a: 1, yp: 100 },
-  { q: 'Việt Nam có bao nhiêu tỉnh thành?',             opts: ['58', '61', '63', '65'],                                               a: 2, yp: 150 },
-  { q: 'Đỉnh núi cao nhất Việt Nam?',                   opts: ['Bạch Mã', 'Fansipan', 'Ngọc Linh', 'Lang Biang'],                    a: 1, yp: 200 },
-  { q: '15 × 3 – 5 = ?',                               opts: ['30', '35', '40', '45'],                                               a: 2, yp: 100 },
-  { q: 'Sông nào chảy qua Hà Nội?',                    opts: ['Sông Cửu Long', 'Sông Hương', 'Sông Hồng', 'Sông Mã'],               a: 2, yp: 150 },
-  { q: '100 – 37 = ?',                                  opts: ['53', '63', '73', '83'],                                               a: 1, yp: 100 },
-  { q: 'Quốc hoa của Việt Nam?',                        opts: ['Hoa sen', 'Hoa mai', 'Hoa đào', 'Hoa lan'],                          a: 0, yp: 200 },
-  { q: 'Năm nào Việt Nam thống nhất đất nước?',         opts: ['1973', '1975', '1977', '1979'],                                       a: 1, yp: 300 },
-  { q: 'Bác Hồ sinh năm nào?',                          opts: ['1889', '1890', '1891', '1892'],                                       a: 1, yp: 300 },
-  { q: 'Đồng tiền chính thức của Việt Nam?',            opts: ['Đô la', 'Đồng', 'Yên', 'Nhân dân tệ'],                              a: 1, yp: 100 },
-  { q: 'Ngày Quốc khánh Việt Nam?',                     opts: ['1/5', '2/9', '30/4', '19/8'],                                         a: 1, yp: 200 },
-  { q: '(12 + 8) × 3 = ?',                              opts: ['48', '60', '72', '80'],                                               a: 1, yp: 100 },
-  { q: 'Biển nào tiếp giáp Việt Nam ở phía Đông?',      opts: ['Biển Đông', 'Biển Tây', 'Thái Bình Dương', 'Ấn Độ Dương'],          a: 0, yp: 150 },
-  { q: 'Tiền tố của 1000 trong hệ SI?',                 opts: ['Mega', 'Kilo', 'Giga', 'Tera'],                                       a: 1, yp: 150 },
+  { q: 'Thủ đô của Việt Nam là?',                      opts: ['TP. Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Huế'],                     a: 1 },
+  { q: '2 × 8 + 4 = ?',                                opts: ['20', '22', '24', '26'],                                               a: 1 },
+  { q: 'Việt Nam có bao nhiêu tỉnh thành?',             opts: ['58', '61', '63', '65'],                                               a: 2 },
+  { q: 'Đỉnh núi cao nhất Việt Nam?',                   opts: ['Bạch Mã', 'Fansipan', 'Ngọc Linh', 'Lang Biang'],                    a: 1 },
+  { q: '15 × 3 – 5 = ?',                               opts: ['30', '35', '40', '45'],                                               a: 2 },
+  { q: 'Sông nào chảy qua Hà Nội?',                    opts: ['Sông Cửu Long', 'Sông Hương', 'Sông Hồng', 'Sông Mã'],               a: 2 },
+  { q: '100 – 37 = ?',                                  opts: ['53', '63', '73', '83'],                                               a: 1 },
+  { q: 'Quốc hoa của Việt Nam?',                        opts: ['Hoa sen', 'Hoa mai', 'Hoa đào', 'Hoa lan'],                          a: 0 },
+  { q: 'Năm nào Việt Nam thống nhất đất nước?',         opts: ['1973', '1975', '1977', '1979'],                                       a: 1 },
+  { q: 'Bác Hồ sinh năm nào?',                          opts: ['1889', '1890', '1891', '1892'],                                       a: 1 },
+  { q: 'Đồng tiền chính thức của Việt Nam?',            opts: ['Đô la', 'Đồng', 'Yên', 'Nhân dân tệ'],                              a: 1 },
+  { q: 'Ngày Quốc khánh Việt Nam?',                     opts: ['1/5', '2/9', '30/4', '19/8'],                                         a: 1 },
+  { q: '(12 + 8) × 3 = ?',                              opts: ['48', '60', '72', '80'],                                               a: 1 },
+  { q: 'Biển nào tiếp giáp Việt Nam ở phía Đông?',      opts: ['Biển Đông', 'Biển Tây', 'Thái Bình Dương', 'Ấn Độ Dương'],          a: 0 },
+  { q: 'Tiền tố của 1000 trong hệ SI?',                 opts: ['Mega', 'Kilo', 'Giga', 'Tera'],                                       a: 1 },
 ]
 
 const LIVES = 3
@@ -35,7 +36,7 @@ interface Obj { id: number; t: ObjType; x: number; y: number; r: number; pts: nu
 interface Particle { x: number; y: number; vx: number; vy: number; r: number; c: string; life: number; max: number }
 interface Confetti { x: number; y: number; vx: number; vy: number; rot: number; rotS: number; w: number; h: number; c: string; life: number; max: number }
 interface LogEntry { time: string; player: string; q: string; ans: string; res: string; prize: string; code: string; pts: number }
-interface Quiz { q: string; opts: string[]; a: number; yp: number }
+interface Quiz { q: string; opts: string[]; a: number }
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
@@ -49,32 +50,53 @@ function shuffle<T>(arr: T[]): T[] {
 function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] {
   const placed: Obj[] = []
   let id = 1
-  // Constrain spawns to reachable arc: x within swing reach, y within rope reach
+
+  // Toàn bộ spawn giới hạn trong đúng tầm với của móc câu (arc + rope)
   const xReach = Math.sin(MAX_SWING) * maxRope
-  const xMin = ox - xReach + 30
-  const xMax = ox + xReach - 30
-  const yTop = OY + 70
-  const yBot = OY + maxRope - 25
+  const xMin = ox - xReach + 40
+  const xMax = ox + xReach - 40
+  const yTop = OY + 80           // sát mép trên (gần mặt đất)
+  const yBot = OY + maxRope - 30 // sát đáy tầm móc
+
+  // Chia 3 vùng theo chiều sâu — nhỏ/ít điểm ở trên, to/nhiều điểm ở dưới
+  const zone1Bot = yTop + (yBot - yTop) * 0.33  // vùng trên   → vàng Nhỏ
+  const zone2Bot = yTop + (yBot - yTop) * 0.66  // vùng giữa  → vàng Vừa
+  //                                               vùng dưới  → vàng To
+
   const tryPlace = (t: ObjType, r: number, pts: number, sz: string, minY: number, maxY: number): boolean => {
     const y0 = Math.max(minY, yTop), y1 = Math.min(maxY, yBot)
     if (y1 - y0 < r * 2) return false
-    for (let attempt = 0; attempt < 60; attempt++) {
+    for (let attempt = 0; attempt < 80; attempt++) {
       const x = xMin + r + Math.random() * (xMax - xMin - r * 2)
       const y = y0 + r + Math.random() * (y1 - y0 - r * 2)
-      if (!placed.some(o => Math.hypot(x - o.x, y - o.y) < r + o.r + 14)) {
+      if (!placed.some(o => Math.hypot(x - o.x, y - o.y) < r + o.r + 16)) {
         placed.push({ id: id++, t, x, y, r, pts, sz, gone: false })
         return true
       }
     }
     return false
   }
-  const mid = (yTop + yBot) / 2
-  for (let i = 0; i < 5; i++) tryPlace('gold', 22, 150, 's', yTop, mid)
-  for (let i = 0; i < 4; i++) tryPlace('gold', 30, 300, 'm', yTop, yBot - 60)
-  for (let i = 0; i < 3; i++) tryPlace('gold', 38, 450, 'l', mid, yBot)
-  for (let i = 0; i < 3; i++) tryPlace('diamond', 22, 1000, 'd', mid, yBot)
-  for (let i = 0; i < 6; i++) tryPlace('rock', 22 + (Math.random() * 14 | 0), 0, '', yTop, yBot)
+
+  // ── Vàng Nhỏ (r=20): 4 viên × 5Y — vùng trên ──
+  for (let i = 0; i < 4; i++) tryPlace('gold', 20, 5, 's', yTop, zone1Bot)
+
+  // ── Vàng Vừa (r=30): 4 viên — vùng giữa ──
+  //    1 viên × 15Y + 3 viên × 10Y (shuffle thứ tự để không đoán được)
+  const midPts = shuffle([15, 10, 10, 10])
+  for (let i = 0; i < 4; i++) tryPlace('gold', 30, midPts[i], 'm', zone1Bot, zone2Bot)
+
+  // ── Vàng To (r=46): 4 viên — vùng dưới ──
+  //    2 viên × 30Y + 2 viên × 15Y (shuffle thứ tự)
+  const bigPts = shuffle([30, 30, 15, 15])
+  for (let i = 0; i < 4; i++) tryPlace('gold', 46, bigPts[i], 'l', zone2Bot, yBot)
+
+  // ── Kim cương (r=24): 2 viên — vùng giữa→dưới ──
+  for (let i = 0; i < 2; i++) tryPlace('diamond', 24, 1000, 'd', zone1Bot, yBot)
+
+  // ── Đá và Bom: rải đều trong toàn vùng ──
+  for (let i = 0; i < 6; i++) tryPlace('rock', 20 + (Math.random() * 12 | 0), 0, '', yTop, yBot)
   for (let i = 0; i < 3; i++) tryPlace('bomb', 22, 0, '', yTop + 60, yBot)
+
   return placed
 }
 
@@ -715,7 +737,7 @@ export default function App() {
       ov.innerHTML = `
         <div style="background:linear-gradient(145deg,#fffdf4,#fff8e1);border:2px solid rgba(200,140,40,.5);border-radius:24px;padding:32px 28px;max-width:500px;width:93%;box-shadow:0 20px 60px rgba(0,0,0,.18),0 0 40px rgba(255,200,0,.12);color:#2c1a00;text-align:center;">
           <div style="font-size:15px;font-weight:700;color:#c47a00;margin-bottom:4px;">${o.t === 'diamond' ? '💎 Kim Cương!' : '🥇 Bắt được Vàng!'} Trả lời đúng nhận</div>
-          <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,210,0,.15);border:1px solid rgba(200,140,40,.3);border-radius:10px;padding:6px 16px;margin-bottom:14px;"><span>🪙</span><strong style="color:#b85c00;font-size:18px;">${s.qData!.yp.toLocaleString('vi-VN')} Y-Point</strong></div>
+          <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,210,0,.15);border:1px solid rgba(200,140,40,.3);border-radius:10px;padding:6px 16px;margin-bottom:14px;"><span>🪙</span><strong style="color:#b85c00;font-size:18px;">${s.qObj!.pts.toLocaleString('vi-VN')} Y-Point</strong></div>
           <p style="font-size:19px;font-weight:700;color:#1a0800;margin-bottom:20px;line-height:1.5;">${s.qData!.q}</p>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             ${s.qData!.opts.map((op, i) => `
@@ -740,10 +762,10 @@ export default function App() {
         overlayRef.current!.style.display = 'none'
         if (correct) {
           snd('ok')
-          const yp = qData.yp
-          s.score += s.qObj!.pts
+          const yp = s.qObj!.pts   // điểm gắn theo viên vàng, không theo câu hỏi
+          s.score += yp
           s.totalYPoints += yp
-          s.btcLog.push({ time: new Date().toLocaleTimeString('vi'), player: s.pName, q: qData.q, ans: qData.opts[idx], res: '✅ Đúng', prize: `${yp.toLocaleString('vi-VN')} Y-Point`, code: '', pts: s.qObj!.pts })
+          s.btcLog.push({ time: new Date().toLocaleTimeString('vi'), player: s.pName, q: qData.q, ans: qData.opts[idx], res: '✅ Đúng', prize: `${yp.toLocaleString('vi-VN')} Y-Point`, code: '', pts: yp })
           spawnConfetti(CW / 2, CH / 2)
           showPrize(yp)
         } else {
