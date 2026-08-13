@@ -77,7 +77,23 @@ function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] 
   for (let i = 0; i < 3; i++) tryPlace('bomb', 22, 0, '', yTop + 60, yBot)
   return placed
 }
+const API_URL = "https://script.google.com/macros/s/AKfycbxZI-ALtptuaYpbzgu9gqJujnjLg5VSjkh2tFlSFmoBxm1TLQY-2OqTEqiDxb5058BH/exec";
 
+// Ghi điểm mới
+async function saveScore(maYD, diem) {
+  await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" }, // tránh CORS preflight
+    body: JSON.stringify({ maYD, diem }),
+  });
+}
+
+// Lấy bảng xếp hạng
+async function getTopScores(limit = 10) {
+  const res = await fetch(`${API_URL}?action=top&limit=${limit}`);
+  const json = await res.json();
+  return json.data;
+}
 
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -793,7 +809,7 @@ export default function App() {
       ov.innerHTML = `
         <div style="background:linear-gradient(145deg,#fffdf4,#fff8e1);border:2px solid rgba(200,140,40,.55);border-radius:28px;padding:40px 36px;max-width:420px;width:93%;box-shadow:0 32px 80px rgba(0,0,0,.15),0 0 50px rgba(255,200,0,.1);text-align:center;">
           <span style="font-size:56px;display:block;margin-bottom:6px;">⛏️</span>
-          <div style="font-size:30px;font-weight:800;background:linear-gradient(130deg,#f4a900,#e06000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;">ĐÀO VÀNG ONLINE</div>
+          <div style="font-size:30px;font-weight:800;background:linear-gradient(130deg,#f4a900,#e06000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;">ĐÀO Y-POINT</div>
           <div style="color:#9a7040;font-size:13px;margin-bottom:26px;">🏅 Bắt vàng · Trả lời câu đố · Nhận Y-Point!</div>
           <label style="font-size:13px;color:#7a4f00;margin-bottom:8px;display:block;text-align:left;">👤 Tên người chơi <span style="color:#e74c3c;">*</span></label>
           <input id="nameInp" type="text" placeholder="Nhập tên của bạn..." maxlength="20"
