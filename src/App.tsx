@@ -85,10 +85,10 @@ function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] 
   const midPts = shuffle([15, 10, 10, 10])
   for (let i = 0; i < 4; i++) tryPlace('gold', 45, midPts[i], 'm', zone1Bot, zone2Bot)
 
-  // ── Vàng To (r=65): 4 viên — vùng dưới ──
+  // ── Vàng To (r=85): 4 viên — vùng dưới ──
   //    2 viên × 30Y + 2 viên × 15Y (shuffle thứ tự)
   const bigPts = shuffle([30, 30, 15, 15])
-  for (let i = 0; i < 4; i++) tryPlace('gold', 70, bigPts[i], 'l', zone2Bot, yBot)
+  for (let i = 0; i < 4; i++) tryPlace('gold', 85, bigPts[i], 'l', zone2Bot, yBot)
 
   // ── Kim cương (r=24): 2 viên — vùng giữa→dưới ──
   for (let i = 0; i < 2; i++) tryPlace('diamond', 24, 1000, 'd', zone1Bot, yBot)
