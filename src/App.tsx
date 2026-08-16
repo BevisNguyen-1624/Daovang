@@ -1086,15 +1086,6 @@ export default function App() {
                   <div style="font-size:15px;font-weight:700;color:#2c1a00;">${nv.phongBan}</div>
                 </div>
               </div>` : ''}
-              ${nv.chucDanh ? `
-              <div style="height:1px;background:rgba(200,140,40,.15);"></div>
-              <div style="display:flex;align-items:center;gap:12px;">
-                <span style="font-size:18px;">💼</span>
-                <div>
-                  <div style="font-size:11px;color:#9a6600;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">Chức danh</div>
-                  <div style="font-size:15px;font-weight:700;color:#2c1a00;">${nv.chucDanh}</div>
-                </div>
-              </div>` : ''}
             </div>
           </div>
 
