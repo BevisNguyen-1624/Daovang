@@ -1273,7 +1273,7 @@ export default function App() {
         color: 'rgba(100,60,0,.4)', fontSize: 12, pointerEvents: 'none', margin: 0,
         fontFamily: 'system-ui, sans-serif',
       }}>
-        🖱️ Click để thả móc câu vàng
+        🖱️ Click để thả móc câu
       </p>
     </div>
   )
