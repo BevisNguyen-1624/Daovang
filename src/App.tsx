@@ -6,23 +6,95 @@ import { useEffect, useRef, useCallback } from 'react'
 // opts: mảng 4 đáp án
 // a   : index đáp án đúng (0-3)
 // yp  : số Y-Point thưởng khi trả lời đúng
-// Y-Point giờ gắn theo kích thước viên vàng (trong makeObjs), không theo câu hỏi
-const QUESTION_BANK = [
-  { q: 'Thủ đô của Việt Nam là?',                      opts: ['TP. Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Huế'],                     a: 1 },
-  { q: '2 × 8 + 4 = ?',                                opts: ['20', '22', '24', '26'],                                               a: 1 },
-  { q: 'Việt Nam có bao nhiêu tỉnh thành?',             opts: ['58', '61', '63', '65'],                                               a: 2 },
-  { q: 'Đỉnh núi cao nhất Việt Nam?',                   opts: ['Bạch Mã', 'Fansipan', 'Ngọc Linh', 'Lang Biang'],                    a: 1 },
-  { q: '15 × 3 – 5 = ?',                               opts: ['30', '35', '40', '45'],                                               a: 2 },
-  { q: 'Sông nào chảy qua Hà Nội?',                    opts: ['Sông Cửu Long', 'Sông Hương', 'Sông Hồng', 'Sông Mã'],               a: 2 },
-  { q: '100 – 37 = ?',                                  opts: ['53', '63', '73', '83'],                                               a: 1 },
-  { q: 'Quốc hoa của Việt Nam?',                        opts: ['Hoa sen', 'Hoa mai', 'Hoa đào', 'Hoa lan'],                          a: 0 },
-  { q: 'Năm nào Việt Nam thống nhất đất nước?',         opts: ['1973', '1975', '1977', '1979'],                                       a: 1 },
-  { q: 'Bác Hồ sinh năm nào?',                          opts: ['1889', '1890', '1891', '1892'],                                       a: 1 },
-  { q: 'Đồng tiền chính thức của Việt Nam?',            opts: ['Đô la', 'Đồng', 'Yên', 'Nhân dân tệ'],                              a: 1 },
-  { q: 'Ngày Quốc khánh Việt Nam?',                     opts: ['1/5', '2/9', '30/4', '19/8'],                                         a: 1 },
-  { q: '(12 + 8) × 3 = ?',                              opts: ['48', '60', '72', '80'],                                               a: 1 },
-  { q: 'Biển nào tiếp giáp Việt Nam ở phía Đông?',      opts: ['Biển Đông', 'Biển Tây', 'Thái Bình Dương', 'Ấn Độ Dương'],          a: 0 },
-  { q: 'Tiền tố của 1000 trong hệ SI?',                 opts: ['Mega', 'Kilo', 'Giga', 'Tera'],                                       a: 1 },
+// Y-Point gắn theo kích thước viên vàng (makeObjs), không theo câu hỏi.
+// Độ khó gắn theo sz: 's' = dễ | 'm' = trung bình | 'l' = khó
+// Khi bắt vàng → rndQ() chọn câu đúng độ khó tương ứng với sz của viên vàng đó.
+const QUESTION_BANK: { q: string; opts: string[]; a: number; diff: 's' | 'm' | 'l' }[] = [
+  // ── DỄ (4 câu) — khớp viên vàng Nhỏ ──
+  {
+    q:    'Big Idea của BST AW26 lần này là gì?',
+    opts: ['POLO THỜI TRANG – TỰ TIN MỖI NGÀY', 'WEAR TO CONNECT — CHẠM MÙA MỚI – TỚI GẦN HƠN', 'CHẠM THU 2026 – ĐÁNH THỨC CẢM XÚC', 'ÁO GIÓ ĐA NĂNG – CHINH PHỤC MỌI THÁCH THỨC'],
+    a: 1, diff: 's',
+  },
+  {
+    q:    'Hành trình từ "MẶC" đến "KẾT NỐI" bao gồm 3 khía cạnh nào?',
+    opts: ['Kết nối bản thân, Kết nối thiên nhiên, Kết nối gia đình', 'Kết nối quá khứ, Kết nối hiện tại, Kết nối tương lai', 'Kết nối công việc, Kết nối bạn bè, Kết nối xã hội', 'Kết nối bản thân, Kết nối thiên nhiên, Kết nối mọi người'],
+    a: 3, diff: 's',
+  },
+  {
+    q:    'Công nghệ DryX trên chất liệu Polo mang lại tính năng gì?',
+    opts: ['Chống nhăn, giữ phom', 'Chống bám bụi', 'Giữ ấm tuyệt đối', 'Thấm hút, khô nhanh'],
+    a: 3, diff: 's',
+  },
+  {
+    q:    'Áo Gió Đa Năng được ứng dụng linh hoạt trong bao nhiêu bối cảnh?',
+    opts: ['3 bối cảnh', '4 bối cảnh', '5 bối cảnh', '6 bối cảnh'],
+    a: 2, diff: 's',
+  },
+
+  // ── TRUNG BÌNH (8 câu) — khớp viên vàng Vừa ──
+  {
+    q:    'Mức giá của dòng sản phẩm Casual Polo nam/nữ lần lượt là bao nhiêu?',
+    opts: ['399k/439k', '349k/399k', '399k/349k', '499k/599k'],
+    a: 2, diff: 'm',
+  },
+  {
+    q:    'Bốn nhóm khách hàng chính được đề cập là những nhóm nào?',
+    opts: ['Gia đình, Học sinh, Thể thao, Công sở', 'Trẻ em, Nam giới, Nữ giới, Người cao tuổi', 'Trung niên, Gen Z, Công sở, Du lịch', 'Gia đình, Office, Active, Gen Z'],
+    a: 3, diff: 'm',
+  },
+  {
+    q:    'Danh sách 5 bối cảnh sử dụng của Áo Gió Đa Năng gồm những gì?',
+    opts: ['Đi làm, Đi học, Đi chơi, Di chuyển ngoài trời, Vận động nhẹ', 'Đi làm, Đi tiệc, Tập gym, Đi phượt, Leo núi', 'Đi học, Đi biển, Đi du lịch xa, Chạy bộ marathon, Dạ hội', 'Ở nhà, Đi làm, Đi ngủ, Tập yoga, Đi chơi'],
+    a: 0, diff: 'm',
+  },
+  {
+    q:    'Big Idea của dòng Áo Gió Đa Năng là gì?',
+    opts: ['ÁO GIÓ ĐA NĂNG — 5 TÍNH NĂNG – 5 BỐI CẢNH – 1 CHIẾC ÁO', 'ÁO GIÓ MÙA THU — 4 TÍNH NĂNG – 4 BỐI CẢNH', 'ÁO GIÓ 4C — THÁCH THỨC MỌI THỜI TIẾT', 'BẮT ĐẦU MÙA MỚI — 1 CHIẾC ÁO CHO TẤT CẢ'],
+    a: 0, diff: 'm',
+  },
+  {
+    q:    '5 tính năng của Áo Gió Đa Năng chất liệu 4C bao gồm những gì?',
+    opts: ['Cản gió, Cản bụi, Giữ ấm tốt, Siêu nhẹ, Thoáng khí', 'Cản gió, Cản bụi, Giữ ấm tốt, Chống UV, Trượt nước nhẹ', 'Cản gió, Chống nước tuyệt đối, Chống UV, Siêu nhẹ, Thoáng khí', 'Giữ ấm, Cản bụi, Chống nhăn, Thấm hút, Trượt nước'],
+    a: 1, diff: 'm',
+  },
+  {
+    q:    'Dòng khóa YKK trên Áo Gió Đa Năng có đặc điểm gì?',
+    opts: ['Dòng khóa bền nhất thế giới', 'Khóa chống nước tuyệt đối', 'Khóa chìm tệp màu áo', 'Khóa tự động chốt ngắt'],
+    a: 0, diff: 'm',
+  },
+  {
+    q:    'Mẫu thời trang 1 lớp của dòng Áo giữ nhiệt XTRAHEAT có ưu điểm chính nào?',
+    opts: ['Thiết kế che khuyết điểm, mặc một lớp vẫn đẹp và ấm', 'Siêu mỏng mát, dùng cho mùa hè', 'Co giãn tối đa, chuyên dùng tập gym', 'Có thể tháo rời tay áo'],
+    a: 0, diff: 'm',
+  },
+  {
+    q:    'Ý nghĩa chi tiết của những con số "5-5-1" ở Áo Gió Đa Năng là gì?',
+    opts: ['5 màu - 5 size - 1 mức giá', '5 chất liệu - 5 kiểu dáng - 1 thương hiệu', '5 tính năng - 5 bối cảnh - 1 chiếc áo', '5 ưu điểm - 5 nhược điểm - 1 giải pháp'],
+    a: 2, diff: 'm',
+  },
+
+  // ── KHÓ (4 câu) — khớp viên vàng To ──
+  {
+    q:    'Anh Nam (28 tuổi) thích tập thể dục nhẹ buổi chiều, hay mặc quần active short. Anh thuộc nhóm KH nào và nên dùng sản phẩm nào?',
+    opts: ['Nhóm OFFICE - Casual Polo', 'Nhóm GEN Z - Casual Polo', 'Nhóm ACTIVE - Active Polo', 'Nhóm GIA ĐÌNH - Active Polo'],
+    a: 2, diff: 'l',
+  },
+  {
+    q:    'Chị Mai tìm mua Polo tặng chồng đi làm văn phòng, thích vải bền dễ chăm sóc, phối quần âu. Chồng chị thuộc nhóm KH nào và hợp dòng sản phẩm nào?',
+    opts: ['Nhóm GIA ĐÌNH - Active Polo', 'Nhóm OFFICE - Casual Polo', 'Nhóm GEN Z - Casual Polo', 'Nhóm ACTIVE - Active Polo'],
+    a: 1, diff: 'l',
+  },
+  {
+    q:    'Sinh viên Gen Z di chuyển bằng xe máy đi học, đi chơi, cần sản phẩm có khả năng chống nắng và trượt nước nhẹ khi mưa bất chợt. Bạn nên giới thiệu dòng nào?',
+    opts: ['Áo gió chất liệu 3C', 'Áo gió chất liệu 4C', 'Casual Polo', 'Áo giữ nhiệt cơ bản cổ cao'],
+    a: 1, diff: 'l',
+  },
+  {
+    q:    'Khách tâm sự: "Mùa thu đông tôi ngại mặc nhiều áo vì cộm và sợ lộ khuyết điểm". Sản phẩm/thiết kế nào giải quyết đúng nhu cầu này?',
+    opts: ['Áo giữ nhiệt cơ bản', 'Active Polo', 'Áo gió chất liệu 3C', 'Áo giữ nhiệt thời trang 1 lớp'],
+    a: 3, diff: 'l',
+  },
 ]
 
 const LIVES = 3
@@ -36,7 +108,7 @@ interface Obj { id: number; t: ObjType; x: number; y: number; r: number; pts: nu
 interface Particle { x: number; y: number; vx: number; vy: number; r: number; c: string; life: number; max: number }
 interface Confetti { x: number; y: number; vx: number; vy: number; rot: number; rotS: number; w: number; h: number; c: string; life: number; max: number }
 interface LogEntry { time: string; player: string; q: string; ans: string; res: string; prize: string; code: string; pts: number }
-interface Quiz { q: string; opts: string[]; a: number }
+interface Quiz { q: string; opts: string[]; a: number; diff: 's' | 'm' | 'l' }
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
@@ -781,17 +853,21 @@ export default function App() {
         setTimeout(() => endGame(true), 500)
     }
 
-    function rndQ() {
-      const av = s.gameQuizzes.filter((_, i) => !s.usedQ.includes(i))
-      if (!av.length) s.usedQ = []
-      const pool = av.length ? av : s.gameQuizzes
-      const idx = s.gameQuizzes.indexOf(pool[Math.floor(Math.random() * pool.length)])
-      s.usedQ.push(idx)
-      return s.gameQuizzes[idx]
+    // sz: 's'=nhỏ/dễ | 'm'=vừa/trung bình | 'l'=to/khó
+    function rndQ(sz: string) {
+      const diff = (sz === 'l' ? 'l' : sz === 'm' ? 'm' : 's') as 's'|'m'|'l'
+      // Lọc câu đúng độ khó chưa dùng
+      const byDiff  = s.gameQuizzes.map((q, i) => ({ q, i })).filter(x => x.q.diff === diff)
+      const unused  = byDiff.filter(x => !s.usedQ.includes(x.i))
+      // Nếu hết câu cùng độ khó → dùng lại pool đó; nếu pool rỗng → fallback ngẫu nhiên
+      const pool    = unused.length ? unused : byDiff.length ? byDiff : s.gameQuizzes.map((q,i)=>({q,i}))
+      const pick    = pool[Math.floor(Math.random() * pool.length)]
+      s.usedQ.push(pick.i)
+      return pick.q
     }
 
     function doQuiz(o: Obj) {
-      s.qObj = o; s.qData = rndQ(); s.paused = true
+      s.qObj = o; s.qData = rndQ(o.sz); s.paused = true
       const ov = overlayRef.current!
       ov.innerHTML = `
         <div style="background:linear-gradient(145deg,#fffdf4,#fff8e1);border:2px solid rgba(200,140,40,.5);border-radius:24px;padding:32px 28px;max-width:500px;width:93%;box-shadow:0 20px 60px rgba(0,0,0,.18),0 0 40px rgba(255,200,0,.12);color:#2c1a00;text-align:center;">
@@ -1001,7 +1077,11 @@ export default function App() {
       s.lives = LIVES; s.score = 0; s.totalYPoints = 0
       s.objs = makeObjs(CW, CH, OX, MAX_ROPE); s.parts = []; s.confetti = []; s.btcLog = []; s.usedQ = []
       s.ang = 0; s.angDir = 1; s.rope = MIN_ROPE; s.carried = null; s.paused = false; s.shake = 0; s.redFlash = 0
-      s.gameQuizzes = shuffle(QUESTION_BANK).slice(0, 10)
+      // Lấy đủ cả 3 nhóm độ khó, shuffle trong từng nhóm để ngẫu nhiên thứ tự
+      const easy = shuffle(QUESTION_BANK.filter(q => q.diff === 's'))
+      const mid  = shuffle(QUESTION_BANK.filter(q => q.diff === 'm'))
+      const hard = shuffle(QUESTION_BANK.filter(q => q.diff === 'l'))
+      s.gameQuizzes = [...easy, ...mid, ...hard]
       s.bgSeed = Date.now() | 0
       s.scoreSaved = false
       s.gs = 'swinging'
