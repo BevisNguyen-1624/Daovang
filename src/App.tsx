@@ -839,8 +839,8 @@ export default function App() {
     function handleHit(o: Obj) {
       o.gone = true; s.carried = o; s.gs = 'retracting'
       if (o.t === 'gold' || o.t === 'diamond') { snd('gold'); burst(o.x, o.y, o.t) }
-      else if (o.t === 'rock') { snd('fail'); burst(o.x, o.y, 'rock', 10); s.shake = 12; triggerRedFlash() }
-      else { snd('boom'); burst(o.x, o.y, 'bomb', 22); s.shake = 22; triggerRedFlash() }
+      else if (o.t === 'rock') { snd('fail'); burst(o.x, o.y, 'rock', 10); s.shake = 6 }  // đá: chỉ rung nhẹ, không flash đỏ
+      else { snd('boom'); burst(o.x, o.y, 'bomb', 22); s.shake = 22; triggerRedFlash() }   // bom: trừ mạng
     }
 
     function loseLife() {
@@ -1209,7 +1209,8 @@ export default function App() {
                 showDiamondBonus()
               }
               else if (o.t === 'gold') { s.gs = 'quiz'; doQuiz(o) }
-              else { loseLife(); s.gs = s.lives > 0 ? 'swinging' : 'result' }
+              else if (o.t === 'bomb') { loseLife(); s.gs = s.lives > 0 ? 'swinging' : 'result' }
+              else { s.gs = 'swinging' }  // đá: thả ra, không trừ mạng
             }
           }
         }
