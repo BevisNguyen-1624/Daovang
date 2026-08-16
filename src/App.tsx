@@ -1036,6 +1036,84 @@ export default function App() {
       setTimeout(() => (document.getElementById('ydInp') as HTMLInputElement)?.focus(), 80)
     }
 
+    // Khởi động game sau khi xác nhận thông tin
+    function launchGame() {
+      overlayRef.current!.style.display = 'none'
+      s.lives = LIVES; s.score = 0; s.totalYPoints = 0
+      s.objs = makeObjs(CW, CH, OX, MAX_ROPE); s.parts = []; s.confetti = []; s.btcLog = []; s.usedQ = []
+      s.ang = 0; s.angDir = 1; s.rope = MIN_ROPE; s.carried = null; s.paused = false; s.shake = 0; s.redFlash = 0
+      const easy = shuffle(QUESTION_BANK.filter(q => q.diff === 's'))
+      const mid  = shuffle(QUESTION_BANK.filter(q => q.diff === 'm'))
+      const hard = shuffle(QUESTION_BANK.filter(q => q.diff === 'l'))
+      s.gameQuizzes = [...easy, ...mid, ...hard]
+      s.bgSeed = Date.now() | 0
+      s.scoreSaved = false
+      s.gs = 'swinging'
+    }
+
+    // Màn hình xác nhận thông tin nhân sự trước khi chơi
+    function showConfirm(nv: { maYD: string; ten: string; phongBan: string; chucDanh: string }) {
+      const ov = overlayRef.current!
+      ov.innerHTML = `
+        <div style="background:linear-gradient(145deg,#fffdf4,#fff8e1);border:2px solid rgba(200,140,40,.55);border-radius:28px;padding:36px 32px;max-width:420px;width:93%;box-shadow:0 32px 80px rgba(0,0,0,.15),0 0 50px rgba(255,200,0,.1);text-align:center;">
+          <div style="font-size:36px;margin-bottom:8px;">👤</div>
+          <div style="font-size:20px;font-weight:800;color:#c47a00;margin-bottom:4px;">Xác nhận thông tin</div>
+          <div style="font-size:13px;color:#9a7040;margin-bottom:24px;">Vui lòng kiểm tra trước khi bắt đầu chơi</div>
+
+          <div style="background:rgba(255,210,0,.1);border:1.5px solid rgba(200,140,40,.25);border-radius:16px;padding:20px;margin-bottom:24px;text-align:left;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="font-size:18px;">🪪</span>
+                <div>
+                  <div style="font-size:11px;color:#9a6600;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">Mã nhân viên</div>
+                  <div style="font-size:17px;font-weight:800;color:#1a0800;letter-spacing:.5px;">${nv.maYD}</div>
+                </div>
+              </div>
+              <div style="height:1px;background:rgba(200,140,40,.15);"></div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="font-size:18px;">📛</span>
+                <div>
+                  <div style="font-size:11px;color:#9a6600;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">Họ và tên</div>
+                  <div style="font-size:18px;font-weight:800;color:#1a0800;">${nv.ten}</div>
+                </div>
+              </div>
+              ${nv.phongBan ? `
+              <div style="height:1px;background:rgba(200,140,40,.15);"></div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="font-size:18px;">🏢</span>
+                <div>
+                  <div style="font-size:11px;color:#9a6600;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">Phòng ban</div>
+                  <div style="font-size:15px;font-weight:700;color:#2c1a00;">${nv.phongBan}</div>
+                </div>
+              </div>` : ''}
+              ${nv.chucDanh ? `
+              <div style="height:1px;background:rgba(200,140,40,.15);"></div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="font-size:18px;">💼</span>
+                <div>
+                  <div style="font-size:11px;color:#9a6600;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">Chức danh</div>
+                  <div style="font-size:15px;font-weight:700;color:#2c1a00;">${nv.chucDanh}</div>
+                </div>
+              </div>` : ''}
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;">
+            <button onclick="window.__confirmBack()" style="flex:1;padding:13px;background:rgba(200,140,40,.12);border:1.5px solid rgba(200,140,40,.35);border-radius:12px;color:#7a4f00;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;">
+              ← Nhập lại
+            </button>
+            <button onclick="window.__confirmStart()" style="flex:2;padding:13px;background:linear-gradient(130deg,#f4a900,#e06000);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;box-shadow:0 6px 20px rgba(244,169,0,.35);">
+              🎮 Bắt đầu chơi!
+            </button>
+          </div>
+        </div>
+      `
+      ov.style.display = 'flex'
+    }
+
+    ;(window as any).__confirmBack = () => { showStart() }
+    ;(window as any).__confirmStart = () => { launchGame() }
+
     ;(window as any).__startGame = async () => {
       const inp     = document.getElementById('ydInp')    as HTMLInputElement
       const errEl   = document.getElementById('ydErr')
@@ -1070,21 +1148,11 @@ export default function App() {
         return
       }
 
+      // Lưu thông tin nhân sự vào state rồi hiện màn xác nhận
       const nv = nvResult
       s.pName = nv.ten || nv.maYD
       s.maYD  = nv.maYD
-      overlayRef.current!.style.display = 'none'
-      s.lives = LIVES; s.score = 0; s.totalYPoints = 0
-      s.objs = makeObjs(CW, CH, OX, MAX_ROPE); s.parts = []; s.confetti = []; s.btcLog = []; s.usedQ = []
-      s.ang = 0; s.angDir = 1; s.rope = MIN_ROPE; s.carried = null; s.paused = false; s.shake = 0; s.redFlash = 0
-      // Lấy đủ cả 3 nhóm độ khó, shuffle trong từng nhóm để ngẫu nhiên thứ tự
-      const easy = shuffle(QUESTION_BANK.filter(q => q.diff === 's'))
-      const mid  = shuffle(QUESTION_BANK.filter(q => q.diff === 'm'))
-      const hard = shuffle(QUESTION_BANK.filter(q => q.diff === 'l'))
-      s.gameQuizzes = [...easy, ...mid, ...hard]
-      s.bgSeed = Date.now() | 0
-      s.scoreSaved = false
-      s.gs = 'swinging'
+      showConfirm(nv)
     }
 
     // ── MAIN LOOP ──
@@ -1154,7 +1222,7 @@ export default function App() {
       cancelAnimationFrame(rafId)
       clearInterval(s.tIntv!); clearInterval(s.qIntv!)
       canvas.removeEventListener('click', handleClick)
-      ;['__answer','__closePrize','__resetToStart','__copyLog','__startGame'].forEach(k => delete (window as any)[k])
+      ;['__answer','__closePrize','__resetToStart','__copyLog','__startGame','__confirmBack','__confirmStart'].forEach(k => delete (window as any)[k])
     }
   }, [snd])
 
