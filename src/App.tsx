@@ -100,7 +100,7 @@ const QUESTION_BANK: { q: string; opts: string[]; a: number; diff: 's' | 'm' | '
 const LIVES = 3
 const OY = 160
 const MIN_ROPE = 30
-const EXT_SPD = 9, RET_EMPTY = 8, RET_HEAVY = 3.5
+const EXT_SPD = 9, RET_EMPTY = 14, RET_HEAVY = 7
 const SWING_SPD = 0.025, MAX_SWING = Math.PI * 0.42
 
 type ObjType = 'gold' | 'diamond' | 'rock' | 'bomb'
@@ -123,42 +123,43 @@ function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] 
   const placed: Obj[] = []
   let id = 1
 
-  const yTop = OY + 80           // sát mép trên (gần mặt đất)
-  const yBot = OY + maxRope - 30 // sát đáy tầm móc
-  const PAD  = 14                // padding sát mép arc
+  // Vùng y spawn: từ gần mặt đất đến gần đáy tầm móc
+  const yTop = OY + 90
+  const yBot = OY + maxRope - 40
 
-  // Chia 3 vùng chiều sâu — nhỏ/ít điểm ở trên, to/nhiều điểm ở dưới
-  const zone1Bot = yTop + (yBot - yTop) * 0.33
-  const zone2Bot = yTop + (yBot - yTop) * 0.66
+  // Chia 3 vùng chiều sâu
+  const zone1Bot = yTop + (yBot - yTop) * 0.33   // trên  → vàng Nhỏ
+  const zone2Bot = yTop + (yBot - yTop) * 0.66   // giữa  → vàng Vừa
+  //                                                dưới  → vàng To
 
-  // X-bound tính theo đúng arc tại độ sâu y — đảm bảo vật thể luôn trong tầm móc
+  // X-bound thực tế tại độ sâu y: tính theo arc móc + thu hẹp 15% để luôn gắp được
   function xBoundsAt(y: number, r: number): [number, number] {
-    const ropeLen  = y - OY                          // chiều dài dây tại y
-    const halfArc  = Math.sin(MAX_SWING) * ropeLen   // nửa bề ngang arc tại y
-    return [ox - halfArc + r + PAD, ox + halfArc - r - PAD]
+    const rope   = y - OY
+    const halfArc = Math.sin(MAX_SWING) * rope * 0.85  // 85% arc để chắc chắn reach
+    const pad    = r + 20
+    return [ox - halfArc + pad, ox + halfArc - pad]
   }
 
-  // Chia màn hình thành lưới cột để đảm bảo phân bổ đều trái/phải
-  // side: -1=chỉ trái, 0=cả hai, 1=chỉ phải
   function tryPlace(
     t: ObjType, r: number, pts: number, sz: string,
     minY: number, maxY: number, side: -1|0|1 = 0
   ): boolean {
     const y0 = Math.max(minY, yTop), y1 = Math.min(maxY, yBot)
     if (y1 - y0 < r * 2) return false
-    for (let attempt = 0; attempt < 100; attempt++) {
+    for (let attempt = 0; attempt < 120; attempt++) {
       const y = y0 + r + Math.random() * (y1 - y0 - r * 2)
       const [xL, xR] = xBoundsAt(y, r)
-      if (xR - xL < r * 2) continue
+      if (xR <= xL + r * 2) continue
 
-      // side: giới hạn nửa trái / nửa phải / toàn bộ
       let x: number
-      if (side === -1)      x = xL + Math.random() * (ox - xL - r)
-      else if (side === 1)  x = ox + r + Math.random() * (xR - ox - r)
-      else                  x = xL + Math.random() * (xR - xL)
+      const midX = (xL + xR) / 2
+      if (side === -1)     x = xL + Math.random() * (midX - xL)
+      else if (side === 1) x = midX + Math.random() * (xR - midX)
+      else                 x = xL + Math.random() * (xR - xL)
 
-      if (x < xL || x > xR) continue
-      if (!placed.some(o => Math.hypot(x - o.x, y - o.y) < r + o.r + 16)) {
+      x = Math.max(xL, Math.min(xR, x))
+      // Gap check nhỏ hơn để dễ đặt hơn
+      if (!placed.some(o => Math.hypot(x - o.x, y - o.y) < r + o.r + 10)) {
         placed.push({ id: id++, t, x, y, r, pts, sz, gone: false })
         return true
       }
@@ -166,35 +167,31 @@ function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] 
     return false
   }
 
-  // ── Vàng Nhỏ (r=22): 4 viên × 5Y — vùng trên, rải đều 2 bên ──
-  const smallSides: (-1|0|1)[] = shuffle([-1,-1,1,1])
-  for (let i = 0; i < 4; i++) tryPlace('gold', 22, 5, 's', yTop, zone1Bot, smallSides[i])
+  // ── Vàng Nhỏ r=20 × 4 viên (5Y) — vùng trên ──
+  const sSides: (-1|0|1)[] = shuffle([-1,-1,1,1])
+  for (let i = 0; i < 4; i++) tryPlace('gold', 20, 5, 's', yTop, zone1Bot, sSides[i])
 
-  // ── Vàng Vừa (r=38): 4 viên — vùng giữa, rải đều 2 bên ──
-  //    1 × 15Y + 3 × 10Y  (+70% so với Nhỏ)
-  const midPts  = shuffle([15, 10, 10, 10]) as number[]
-  const midSides: (-1|0|1)[] = shuffle([-1,-1,1,1])
-  for (let i = 0; i < 4; i++) tryPlace('gold', 38, midPts[i], 'm', zone1Bot, zone2Bot, midSides[i])
+  // ── Vàng Vừa r=30 × 4 viên (10-15Y) — vùng giữa ──
+  const mPts: number[] = shuffle([15, 10, 10, 10])
+  const mSides: (-1|0|1)[] = shuffle([-1,-1,1,1])
+  for (let i = 0; i < 4; i++) tryPlace('gold', 30, mPts[i], 'm', zone1Bot, zone2Bot, mSides[i])
 
-  // ── Vàng To (r=58): 4 viên — vùng dưới, rải đều 2 bên ──
-  //    2 × 30Y + 2 × 15Y  (+52% so với Vừa)
-  const bigPts  = shuffle([30, 30, 15, 15]) as number[]
-  const bigSides: (-1|0|1)[] = shuffle([-1,-1,1,1])
-  for (let i = 0; i < 4; i++) tryPlace('gold', 58, bigPts[i], 'l', zone2Bot, yBot, bigSides[i])
+  // ── Vàng To r=44 × 4 viên (15-30Y) — vùng dưới ──
+  const lPts: number[] = shuffle([30, 30, 15, 15])
+  const lSides: (-1|0|1)[] = shuffle([-1,-1,1,1])
+  for (let i = 0; i < 4; i++) tryPlace('gold', 44, lPts[i], 'l', zone2Bot, yBot, lSides[i])
 
-  // ── Kim cương (r=24): 2 viên — vùng giữa, 1 trái 1 phải ──
-  //    Spawn trong vùng giữa để chắc chắn trong tầm arc
-  tryPlace('diamond', 24, 1000, 'd', zone1Bot, zone2Bot, -1)
-  tryPlace('diamond', 24, 1000, 'd', zone1Bot, zone2Bot,  1)
+  // ── Kim cương r=22 × 2 viên — vùng giữa ──
+  tryPlace('diamond', 22, 1000, 'd', zone1Bot, zone2Bot, -1)
+  tryPlace('diamond', 22, 1000, 'd', zone1Bot, zone2Bot,  1)
 
-  // ── Đá: rải đều toàn vùng ──
-  const rockSides: (-1|0|1)[] = shuffle([-1,-1,-1,1,1,1])
-  for (let i = 0; i < 6; i++) tryPlace('rock', 18 + (Math.random() * 10 | 0), 0, '', yTop, yBot, rockSides[i])
+  // ── Đá × 5 — rải toàn vùng ──
+  const rSides: (-1|0|1)[] = shuffle([-1,-1,0,1,1])
+  for (let i = 0; i < 5; i++) tryPlace('rock', 16 + (Math.random() * 8 | 0), 0, '', yTop, yBot, rSides[i])
 
-  // ── Bom: vùng dưới, 1 trái 1 giữa 1 phải ──
-  tryPlace('bomb', 22, 0, '', zone1Bot, yBot, -1)
-  tryPlace('bomb', 22, 0, '', zone1Bot, yBot,  0)
-  tryPlace('bomb', 22, 0, '', zone1Bot, yBot,  1)
+  // ── Bom × 2 — vùng giữa-dưới ──
+  tryPlace('bomb', 20, 0, '', zone1Bot, yBot, -1)
+  tryPlace('bomb', 20, 0, '', zone1Bot, yBot,  1)
 
   return placed
 }
