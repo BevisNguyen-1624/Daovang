@@ -905,15 +905,35 @@ export default function App() {
           showPrize(yp)
         } else {
           s.btcLog.push({ time: new Date().toLocaleTimeString('vi'), player: s.pName, q: qData.q, ans: qData.opts[idx] ?? '—', res: '❌ Sai', prize: '—', code: '—', pts: 0 })
-          loseLife()
-          s.paused = false
-          if (s.gs !== 'result') { s.gs = 'swinging'; checkDone() }
+          snd('fail')
+          showWrong()
         }
-        s.qObj = null; s.qData = null
+        if (correct) { s.qObj = null; s.qData = null }
       }, correct ? 400 : 600)
     }
 
-    function showPrize(yp: number) {
+    function showWrong() {
+      s.gs = 'prize'
+      const ov = overlayRef.current!
+      ov.innerHTML = `
+        <div style="background:linear-gradient(145deg,#fff5f5,#ffe8e8);border:2px solid rgba(220,60,60,.35);border-radius:24px;padding:32px 28px;max-width:360px;width:93%;box-shadow:0 20px 60px rgba(0,0,0,.15);text-align:center;">
+          <div style="font-size:56px;margin-bottom:8px;">😅</div>
+          <div style="font-size:22px;font-weight:800;color:#c0392b;margin-bottom:10px;">Chưa chính xác rùi!</div>
+          <div style="font-size:14px;color:#7a3a3a;margin-bottom:24px;">Không sao — cố lên lần sau nhé!</div>
+          <button onclick="window.__closeWrong()" style="padding:12px 32px;background:linear-gradient(130deg,#e74c3c,#c0392b);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;">🎮 Tiếp tục chơi!</button>
+        </div>
+      `
+      ov.style.display = 'flex'
+    }
+
+    ;(window as any).__closeWrong = () => {
+      overlayRef.current!.style.display = 'none'
+      s.qObj = null; s.qData = null
+      s.paused = false; s.gs = 'swinging'
+      checkDone()
+    }
+
+        function showPrize(yp: number) {
       s.gs = 'prize'
       const label = `${yp.toLocaleString('vi-VN')} Y-Point`
       const ov = overlayRef.current!
@@ -1086,6 +1106,15 @@ export default function App() {
                   <div style="font-size:15px;font-weight:700;color:#2c1a00;">${nv.phongBan}</div>
                 </div>
               </div>` : ''}
+              ${nv.chucDanh ? `
+              <div style="height:1px;background:rgba(200,140,40,.15);"></div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="font-size:18px;">💼</span>
+                <div>
+                  <div style="font-size:11px;color:#9a6600;font-weight:600;letter-spacing:.5px;text-transform:uppercase;">Chức danh</div>
+                  <div style="font-size:15px;font-weight:700;color:#2c1a00;">${nv.chucDanh}</div>
+                </div>
+              </div>` : ''}
             </div>
           </div>
 
@@ -1213,7 +1242,7 @@ export default function App() {
       cancelAnimationFrame(rafId)
       clearInterval(s.tIntv!); clearInterval(s.qIntv!)
       canvas.removeEventListener('click', handleClick)
-      ;['__answer','__closePrize','__resetToStart','__copyLog','__startGame','__confirmBack','__confirmStart'].forEach(k => delete (window as any)[k])
+      ;['__answer','__closePrize','__resetToStart','__copyLog','__startGame','__confirmBack','__confirmStart','__closeWrong'].forEach(k => delete (window as any)[k])
     }
   }, [snd])
 
