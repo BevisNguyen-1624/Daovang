@@ -119,7 +119,7 @@ function shuffle<T>(arr: T[]): T[] {
   return a
 }
 
-function makeObjs(CW: number, _CH: number, ox: number, maxRope: number): Obj[] {
+function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] {
   const placed: Obj[] = []
   let id = 1
 
@@ -129,30 +129,30 @@ function makeObjs(CW: number, _CH: number, ox: number, maxRope: number): Obj[] {
   const zone1Bot = yTop + (yBot - yTop) * 0.33
   const zone2Bot = yTop + (yBot - yTop) * 0.66
 
-  // X-bound: dùng toàn bề rộng canvas nhưng clamp trong arc thực
-  // Chia 3 cột ngang để trải đều: trái / giữa / phải
-  const colW = CW / 3
-  // arc tại y để reject nếu nằm hoàn toàn ngoài tầm móc
-  function inArc(x: number, y: number, r: number): boolean {
+  // Tại độ sâu y, tính x-range thực tế móc có thể reach
+  // Dùng 78% arc để đảm bảo luôn gắp được kể cả khi người chơi không click đúng timing
+  function arcRange(y: number, r: number): [number, number] {
     const rope    = y - OY
-    const halfArc = Math.sin(MAX_SWING) * rope
-    return x - r >= ox - halfArc - 10 && x + r <= ox + halfArc + 10
+    const half    = Math.sin(MAX_SWING) * rope * 0.78
+    return [ox - half + r + 8, ox + half - r - 8]
   }
 
-  // slot: 0=cột trái(0-CW/3) | 1=cột giữa(CW/3-2CW/3) | 2=cột phải(2CW/3-CW)
+  // Chia arc tại y thành 3 phần đều nhau: L / M / R
+  // part: 0=trái | 1=giữa | 2=phải
   function tryPlace(
     t: ObjType, r: number, pts: number, sz: string,
-    minY: number, maxY: number, slot: 0|1|2 = 1
+    minY: number, maxY: number, part: 0|1|2 = 1
   ): boolean {
-    const y0   = Math.max(minY, yTop), y1 = Math.min(maxY, yBot)
+    const y0 = Math.max(minY, yTop), y1 = Math.min(maxY, yBot)
     if (y1 - y0 < r * 2) return false
-    const xMin = slot * colW + r + 10
-    const xMax = (slot + 1) * colW - r - 10
-    if (xMax <= xMin) return false
     for (let attempt = 0; attempt < 150; attempt++) {
       const y = y0 + r + Math.random() * (y1 - y0 - r * 2)
-      const x = xMin + Math.random() * (xMax - xMin)
-      if (!inArc(x, y, r)) continue
+      const [xL, xR] = arcRange(y, r)
+      if (xR - xL < r * 3) continue           // arc quá hẹp tại y này → bỏ
+      const segW = (xR - xL) / 3
+      const segL = xL + part * segW
+      const segR = segL + segW
+      const x    = segL + Math.random() * (segR - segL)
       if (!placed.some(o => Math.hypot(x - o.x, y - o.y) < r + o.r + 8)) {
         placed.push({ id: id++, t, x, y, r, pts, sz, gone: false })
         return true
@@ -161,29 +161,29 @@ function makeObjs(CW: number, _CH: number, ox: number, maxRope: number): Obj[] {
     return false
   }
 
-  // ── Vàng Nhỏ r=20 × 4 viên (5Y) — vùng trên: slot 0,1,1,2 ──
-  const sSlots = shuffle([0,1,1,2]) as (0|1|2)[]
-  for (let i = 0; i < 4; i++) tryPlace('gold', 20, 5, 's', yTop, zone1Bot, sSlots[i])
+  // ── Vàng Nhỏ r=20 × 4 viên (5Y) — vùng trên, phủ đều 3 phần ──
+  const sParts = shuffle([0,1,1,2]) as (0|1|2)[]
+  for (let i = 0; i < 4; i++) tryPlace('gold', 20, 5, 's', yTop, zone1Bot, sParts[i])
 
-  // ── Vàng Vừa r=30 × 4 viên (10-15Y) — vùng giữa: slot 0,1,1,2 ──
+  // ── Vàng Vừa r=30 × 4 viên (10-15Y) — vùng giữa ──
   const mPts   = shuffle([15, 10, 10, 10]) as number[]
-  const mSlots = shuffle([0,1,1,2]) as (0|1|2)[]
-  for (let i = 0; i < 4; i++) tryPlace('gold', 30, mPts[i], 'm', zone1Bot, zone2Bot, mSlots[i])
+  const mParts = shuffle([0,1,1,2]) as (0|1|2)[]
+  for (let i = 0; i < 4; i++) tryPlace('gold', 30, mPts[i], 'm', zone1Bot, zone2Bot, mParts[i])
 
-  // ── Vàng To r=44 × 4 viên (15-30Y) — vùng dưới: slot 0,1,1,2 ──
+  // ── Vàng To r=44 × 4 viên (15-30Y) — vùng dưới ──
   const lPts   = shuffle([30, 30, 15, 15]) as number[]
-  const lSlots = shuffle([0,1,1,2]) as (0|1|2)[]
-  for (let i = 0; i < 4; i++) tryPlace('gold', 44, lPts[i], 'l', zone2Bot, yBot, lSlots[i])
+  const lParts = shuffle([0,1,1,2]) as (0|1|2)[]
+  for (let i = 0; i < 4; i++) tryPlace('gold', 44, lPts[i], 'l', zone2Bot, yBot, lParts[i])
 
-  // ── Kim cương r=22 × 2 viên — vùng giữa: slot 0 và 2 ──
+  // ── Kim cương r=22 × 2 viên — vùng giữa, phần 0 và 2 ──
   tryPlace('diamond', 22, 1000, 'd', zone1Bot, zone2Bot, 0)
   tryPlace('diamond', 22, 1000, 'd', zone1Bot, zone2Bot, 2)
 
-  // ── Đá × 6 — rải toàn vùng, 2 mỗi cột ──
-  const rSlots = shuffle([0,0,1,1,2,2]) as (0|1|2)[]
-  for (let i = 0; i < 6; i++) tryPlace('rock', 14 + (Math.random() * 8 | 0), 0, '', yTop, yBot, rSlots[i])
+  // ── Đá × 6 — rải đều 3 phần, toàn vùng ──
+  const rParts = shuffle([0,0,1,1,2,2]) as (0|1|2)[]
+  for (let i = 0; i < 6; i++) tryPlace('rock', 14 + (Math.random() * 8 | 0), 0, '', yTop, yBot, rParts[i])
 
-  // ── Bom × 2 — vùng giữa-dưới, cột 0 và 2 ──
+  // ── Bom × 2 — vùng giữa-dưới, phần 0 và 2 ──
   tryPlace('bomb', 20, 0, '', zone1Bot, yBot, 0)
   tryPlace('bomb', 20, 0, '', zone1Bot, yBot, 2)
 
