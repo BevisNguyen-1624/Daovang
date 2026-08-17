@@ -137,14 +137,14 @@ const QUESTION_BANK: { q: string; opts: string[]; a: number; diff: 's' | 'm' | '
     diff: 'm'
   },
   {
-    q: 'Ý nghĩa chi tiết của những con số "5-5-1" ở Áo Gió Đa Năng là gì?',
+    q: 'Đâu là tính năng đặc biệt của POLO Chạm Thu?',
     opts: [
-      '5 màu - 5 size - 1 mức giá',
-      '5 chất liệu - 5 kiểu dáng - 1 thương hiệu',
-      '5 tính năng - 5 bối cảnh - 1 chiếc áo',
-      '5 ưu điểm - 5 nhược điểm - 1 giải pháp'
+      'VMax 0.2',
+      'DryZ',
+      'MaxQ 0.2',
+      'QMax 0.2'
     ],
-    a: 2,
+    a: 3,
     diff: 'm'
   },
 
