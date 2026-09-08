@@ -23,12 +23,6 @@ const QUESTION_BANK: { q: string; opts: string[]; a: number; diff: 's' | 'm' | '
     diff: 's'
   },
   {
-    q: 'Địa chỉ tên miền (domain) trên web để truy cập hệ thống học tập YODY GROWTH là gì?',
-    opts: ['yody.growth.io', 'growth.yody.vn', 'lms.yody.io', 'growth.yody.io'],
-    a: 3,
-    diff: 's'
-  },
-  {
     q: 'Quy trình đăng nhập với tài khoản nội bộ gồm mấy bước?',
     opts: [
       '4 bước: Nhấn vào biểu tượng App >> Chọn Đăng nhập >> Nhập tài khoản >> Lấy mã xác thực',
