@@ -23,6 +23,12 @@ const QUESTION_BANK: { q: string; opts: string[]; a: number; diff: 's' | 'm' | '
     diff: 's'
   },
   {
+    q: 'Địa chỉ tên miền (domain) trên web để truy cập hệ thống học tập YODY GROWTH là gì?',
+    opts: ['yody.growth.io', 'growth.yody.vn', 'lms.yody.io', 'growth.yody.io'],
+    a: 3,
+    diff: 's'
+  },
+  {
     q: 'Quy trình đăng nhập với tài khoản nội bộ gồm mấy bước?',
     opts: [
       '4 bước: Nhấn vào biểu tượng App >> Chọn Đăng nhập >> Nhập tài khoản >> Lấy mã xác thực',
@@ -1007,7 +1013,7 @@ export default function App() {
           </div>` : `<div style="color:#a07040;margin:14px 0;font-size:14px;">Chưa có Y-Point nào được nhận</div>`}
           <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
             <button onclick="window.__resetToStart()" style="padding:13px 28px;background:linear-gradient(130deg,#f4a900,#e06000);border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;display:block;width:100%;">🔄 Chơi lại</button>
-            <a href="https://growth.yody.io" target="_blank" style="padding:13px 28px;background:linear-gradient(130deg,#27ae60,#1a7a44);border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;">🚀 TRẢI NGHIỆM YODY GROWTH NGAY TẠI ĐÂY</a>
+            <a href="https://growth.yody.io" target="_blank" style="padding:13px 28px;background:linear-gradient(130deg,#27ae60,#1a7a44);border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;">🚀 TRẢI NGHIỆM NGAY TẠI ĐÂY</a>
           </div>
         </div>
       `
@@ -1032,8 +1038,8 @@ export default function App() {
       ov.innerHTML = `
         <div style="background:linear-gradient(145deg,#fffdf4,#fff8e1);border:2px solid rgba(200,140,40,.55);border-radius:28px;padding:40px 36px;max-width:420px;width:93%;box-shadow:0 32px 80px rgba(0,0,0,.15),0 0 50px rgba(255,200,0,.1);text-align:center;">
           <span style="font-size:56px;display:block;margin-bottom:6px;">⛏️</span>
-          <div style="font-size:30px;font-weight:800;background:linear-gradient(130deg,#f4a900,#e06000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;">TÌM HIỂU        YODY GROWTH!!</div>
-          <div style="color:#9a7040;font-size:13px;margin-bottom:26px;">🏅 Lụm vàng · Trả lời câu đố · Nhận Y-Point!</div>
+          <div style="font-size:30px;font-weight:800;background:linear-gradient(130deg,#f4a900,#e06000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;white-space:nowrap;">TÌM HIỂU YODY GROWTH!!!</div>
+          <div style="color:#9a7040;font-size:13px;margin-bottom:26px;white-space:nowrap;">🏅 Lum vàng - Trả lời câu đố - Nhận Y-Point!</div>
 
           <label style="font-size:13px;color:#7a4f00;margin-bottom:8px;display:block;text-align:left;">🪪 Mã nhân viên (Mã YD) <span style="color:#e74c3c;">*</span></label>
           <input id="ydInp" type="text" placeholder="VD: YD12345" maxlength="20"
