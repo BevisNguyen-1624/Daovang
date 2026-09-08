@@ -10,187 +10,99 @@ import { useEffect, useRef, useCallback } from 'react'
 // Độ khó gắn theo sz: 's' = dễ | 'm' = trung bình | 'l' = khó
 // Khi bắt vàng → rndQ() chọn câu đúng độ khó tương ứng với sz của viên vàng đó.
 const QUESTION_BANK: { q: string; opts: string[]; a: number; diff: 's' | 'm' | 'l' }[] = [
-  // ── DỄ (6 câu) ──
+  // ── DỄ (5 câu = 10 điểm) ──
   {
-    q: 'Big Idea của BST AW26 lần này là gì?',
+    q: 'Hệ thống học tập YODY GROWTH được triển khai nhằm với ý nghĩa gì?',
     opts: [
-      'POLO THỜI TRANG – TỰ TIN MỖI NGÀY',
-      'WEAR TO CONNECT — CHẠM MÙA MỚI – TỚI GẦN HƠN',
-      'CHẠM THU 2026 – ĐÁNH THỨC CẢM XÚC',
-      'ÁO GIÓ ĐA NĂNG – CHINH PHỤC MỌI THÁCH THỨC'
-    ],
-    a: 1,
-    diff: 's'
-  },
-  {
-    q: 'Hành trình từ "MẶC" đến "KẾT NỐI" bao gồm 3 khía cạnh nào?',
-    opts: [
-      'Kết nối bản thân, Kết nối thiên nhiên, Kết nối gia đình',
-      'Kết nối quá khứ, Kết nối hiện tại, Kết nối tương lai',
-      'Kết nối công việc, Kết nối bạn bè, Kết nối xã hội',
-      'Kết nối bản thân, Kết nối thiên nhiên, Kết nối mọi người'
+      'YODY GROWTH giúp bạn dễ dàng tìm thấy kiến thức mình cần, đúng lúc mình cần.',
+      'Học linh hoạt, chủ động theo cách của mình',
+      'Biết mình đang ở đâu → Biết mình cần cải thiện gì',
+      'Cả 3 phương án trên'
     ],
     a: 3,
     diff: 's'
   },
   {
-    q: 'Mức giá của dòng sản phẩm Casual Polo nam/nữ lần lượt là bao nhiêu?',
-    opts: ['399k/439k', '349k/399k', '399k/349k', '499k/599k'],
+    q: 'Địa chỉ tên miền (domain) trên web để truy cập hệ thống học tập YODY GROWTH là gì?',
+    opts: ['yody.growth.io', 'growth.yody.vn', 'lms.yody.io', 'growth.yody.io'],
+    a: 3,
+    diff: 's'
+  },
+  {
+    q: 'Quy trình đăng nhập với tài khoản nội bộ gồm mấy bước?',
+    opts: [
+      '4 bước: Nhấn vào biểu tượng App >> Chọn Đăng nhập >> Nhập tài khoản >> Lấy mã xác thực',
+      '3 bước: Chọn Đăng nhập >> Nhập tài khoản >> Nộp bài',
+      '5 bước: Mở Web >> Nhập Email >> Bật sinh trắc học >> Chọn lớp học >> Hoàn tất',
+      '2 bước: Tải App >> Quét mã QR'
+    ],
+    a: 0,
+    diff: 's'
+  },
+  {
+    q: 'Thông tin tài khoản và mật khẩu dùng để đăng nhập thuộc hệ thống nào?',
+    opts: ['Gapo', '1office', 'Unicorn', 'SMS'],
     a: 2,
     diff: 's'
   },
   {
-    q: 'Công nghệ DryX trên chất liệu Polo mang lại tính năng gì?',
-    opts: ['Chống nhăn, giữ phom', 'Chống bám bụi', 'Giữ ấm tuyệt đối', 'Thấm hút, khô nhanh'],
+    q: 'Để xem danh sách các bài tập trong lớp học, bạn chọn Tab nào?',
+    opts: ['Tab Giới thiệu', 'Tab Nội dung', 'Tab Kết quả', 'Tab Bài tập'],
     a: 3,
-    diff: 's'
-  },
-  {
-    q: 'Bốn nhóm đối tượng khách hàng YODY đang hướng tới là những ai?',
-    opts: [
-      'Gia đình, Học sinh, Thể thao, Công sở',
-      'Trẻ em, Nam giới, Nữ giới, Người cao tuổi',
-      'Trung niên, Gen Z, Công sở, Du lịch',
-      'Gia đình, Office, Active, Gen Z'
-    ],
-    a: 3,
-    diff: 's'
-  },
-  {
-    q: 'Danh sách 5 bối cảnh sử dụng của Áo Gió Đa Năng gồm những gì?',
-    opts: [
-      'Đi làm, Đi học, Đi chơi, Di chuyển ngoài trời, Vận động nhẹ',
-      'Đi làm, Đi tiệc, Tập gym, Đi phượt, Leo núi',
-      'Đi học, Đi biển, Đi du lịch xa, Chạy bộ marathon, Dạ hội',
-      'Ở nhà, Đi làm, Đi ngủ, Tập yoga, Đi chơi'
-    ],
-    a: 0,
     diff: 's'
   },
 
-  // ── TRUNG BÌNH (8 câu) ──
+  // ── TRUNG BÌNH (4 câu = 15 điểm) ──
   {
-    q: 'Áo giữ nhiệt Xtraheat có khả năng tăng nhiệt tự thân lên đến bao nhiêu độ?',
-    opts: ['+1.5 độ C', '+1.2 độ C', '+2.2 độ C', '+ 3.2 độ C'],
+    q: 'Theo tài liệu hướng dẫn, có bao nhiêu cách để học viên vào lớp học mình mong muốn?',
+    opts: ['1 cách', '3 cách', '2 cách', '4 cách'],
     a: 2,
     diff: 'm'
   },
   {
-    q: 'Big Idea của dòng Áo Gió Đa Năng là gì?',
+    q: 'Tab "THÔNG BÁO" trong màn hình chi tiết lớp học dùng để làm gì?',
     opts: [
-      'ÁO GIÓ ĐA NĂNG — 5 TÍNH NĂNG – 5 BỐI CẢNH – 1 CHIẾC ÁO',
-      'ÁO GIÓ MÙA THU — 4 TÍNH NĂNG – 4 BỐI CẢNH',
-      'ÁO GIÓ 4C — THÁCH THỨC MỌI THỜI TIẾT',
-      'BẮT ĐẦU MÙA MỚI — 1 CHIẾC ÁO CHO TẤT CẢ'
+      'Hiển thị các thông báo của lớp học.',
+      'Hiển thị thông tin giới thiệu của lớp học',
+      'Hiển thị bảng điểm học viên',
+      'Hiển thị bảng xếp hạng'
     ],
     a: 0,
     diff: 'm'
   },
   {
-    q: 'Các dòng sản phẩm chính sẽ có mặt trong bộ sưu tập AW26 là gì?',
+    q: 'Dấu sao (*) đứng sau tên một nội dung trong lớp học có ý nghĩa gì?',
     opts: [
-      'ÁO GIÓ ĐA NĂNG',
-      'ÁO GIỮ NHIỆT XTRAHEAT',
-      'POLO CHẠM THU',
-      'CẢ 3 PHƯƠNG ÁN TRÊN'
-    ],
-    a: 3,
-    diff: 'm'
-  },
-  {
-    q: '5 tính năng của Áo Gió Đa Năng chất liệu 4C bao gồm những gì?',
-    opts: [
-      'Cản gió, Cản bụi, Giữ ấm tốt, Siêu nhẹ, Thoáng khí',
-      'Cản gió, Cản bụi, Giữ ấm tốt, Chống UV, Trượt nước nhẹ',
-      'Cản gió, Chống nước tuyệt đối, Chống UV, Siêu nhẹ, Thoáng khí',
-      'Giữ ấm, Cản bụi, Chống nhăn, Thấm hút, Trượt nước'
-    ],
-    a: 1,
-    diff: 'm'
-  },
-  {
-    q: 'Dòng khóa YKK trên Áo Gió Đa Năng có đặc điểm gì?',
-    opts: [
-      'Dòng khóa bền nhất thế giới',
-      'Khóa chống nước tuyệt đối',
-      'Khóa chìm tệp màu áo',
-      'Khóa tự động chốt ngắt'
+      'Nội dung bắt buộc hoàn thành',
+      'Bài học được đánh giá 5 sao',
+      'Nội dung học tùy chọn',
+      'Bài học đã hoàn thành'
     ],
     a: 0,
     diff: 'm'
   },
   {
-    q: 'Áo Gió Đa Năng được ứng dụng linh hoạt trong bao nhiêu bối cảnh?',
-    opts: ['3 bối cảnh', '4 bối cảnh', '5 bối cảnh', '6 bối cảnh'],
-    a: 2,
-    diff: 'm'
-  },
-  {
-    q: 'Mẫu thời trang 1 lớp của dòng Áo giữ nhiệt XTRAHEAT có ưu điểm chính nào?',
+    q: 'Điều kiện để học viên được hệ thống tính là "Hoàn tất" một lớp học là gì?',
     opts: [
-      'Thiết kế che khuyết điểm, mặc một lớp vẫn đẹp và ấm',
-      'Siêu mỏng mát, dùng cho mùa hè',
-      'Co giãn tối đa, chuyên dùng tập gym',
-      'Có thể tháo rời tay áo'
-    ],
-    a: 0,
-    diff: 'm'
-  },
-  {
-    q: 'Đâu là tính năng đặc biệt của POLO Chạm Thu?',
-    opts: [
-      'VMax 0.2',
-      'DryZ',
-      'MaxQ 0.2',
-      'QMax 0.2'
+      'Học hết 100% các nội dung bắt buộc',
+      'Chỉ cần làm bài kiểm tra',
+      'Đánh giá sau khoá học',
+      'Tất cả các đáp án trên'
     ],
     a: 3,
     diff: 'm'
   },
 
-  // ── KHÓ (4 câu - Khớp các dòng in xanh) ──
+  // ── KHÓ (1 câu = 30 điểm) ──
   {
-    q: 'Anh Nam (28 tuổi) thích tập thể dục nhẹ buổi chiều, hay mặc quần active short. Anh thuộc nhóm KH nào và nên dùng sản phẩm nào?',
+    q: 'Nếu hết thời gian làm bài mà thí sinh không nhấn nút "Nộp bài", hệ thống sẽ xử lý thế nào?',
     opts: [
-      'Nhóm OFFICE - Casual Polo',
-      'Nhóm GEN Z - Casual Polo',
-      'Nhóm ACTIVE - Active Polo',
-      'Nhóm GIA ĐÌNH - Active Polo'
+      'Hủy kết quả bài thi',
+      'Cộng thêm 5 phút',
+      'Tự động nộp bài',
+      'Báo lỗi kết nối'
     ],
     a: 2,
-    diff: 'l'
-  },
-  {
-    q: 'Chị Mai tìm mua Polo tặng chồng đi làm văn phòng, thích vải bền dễ chăm sóc, phối quần âu. Chồng chị thuộc nhóm KH nào và hợp dòng sản phẩm nào?',
-    opts: [
-      'Nhóm GIA ĐÌNH - Active Polo',
-      'Nhóm OFFICE - Casual Polo',
-      'Nhóm GEN Z - Casual Polo',
-      'Nhóm ACTIVE - Active Polo'
-    ],
-    a: 1,
-    diff: 'l'
-  },
-  {
-    q: 'Sinh viên Gen Z di chuyển bằng xe máy đi học, đi chơi, cần sản phẩm có khả năng chống nắng và trượt nước nhẹ khi mưa bất chợt. Bạn nên giới thiệu dòng nào?',
-    opts: [
-      'Áo gió chất liệu 3C',
-      'Áo gió chất liệu 4C',
-      'Casual Polo',
-      'Áo giữ nhiệt cơ bản cổ cao'
-    ],
-    a: 1,
-    diff: 'l'
-  },
-  {
-    q: 'Khách tâm sự: "Mùa thu đông tôi ngại mặc nhiều áo vì cộm và sợ lộ khuyết điểm". Sản phẩm/thiết kế nào giải quyết đúng nhu cầu này?',
-    opts: [
-      'Áo giữ nhiệt cơ bản',
-      'Active Polo',
-      'Áo gió chất liệu 3C',
-      'Áo giữ nhiệt thời trang 1 lớp'
-    ],
-    a: 3,
     diff: 'l'
   }
 ]
@@ -259,19 +171,19 @@ function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] 
     return false
   }
 
-  // ── Vàng Nhỏ r=20 × 4 viên (5Y) — vùng trên, phủ đều 3 phần ──
-  const sParts = shuffle([0,1,1,2]) as (0|1|2)[]
-  for (let i = 0; i < 4; i++) tryPlace('gold', 20, 5, 's', yTop, zone1Bot, sParts[i])
+  // ── Vàng Nhỏ r=20 × 5 viên (10Y) — vùng trên, phủ đều 3 phần ──
+  const sParts = shuffle([0,1,1,2,2]) as (0|1|2)[]
+  for (let i = 0; i < 5; i++) tryPlace('gold', 20, 10, 's', yTop, zone1Bot, sParts[i])
 
-  // ── Vàng Vừa r=30 × 4 viên (10-15Y) — vùng giữa ──
-  const mPts   = shuffle([15, 10, 10, 10]) as number[]
+  // ── Vàng Vừa r=30 × 4 viên (15Y) — vùng giữa ──
+  const mPts   = shuffle([15, 15, 15, 15]) as number[]
   const mParts = shuffle([0,1,1,2]) as (0|1|2)[]
   for (let i = 0; i < 4; i++) tryPlace('gold', 30, mPts[i], 'm', zone1Bot, zone2Bot, mParts[i])
 
-  // ── Vàng To r=44 × 4 viên (15-30Y) — vùng dưới ──
-  const lPts   = shuffle([30, 30, 15, 15]) as number[]
-  const lParts = shuffle([0,1,1,2]) as (0|1|2)[]
-  for (let i = 0; i < 4; i++) tryPlace('gold', 44, lPts[i], 'l', zone2Bot, yBot, lParts[i])
+  // ── Vàng To r=44 × 1 viên (30Y) — vùng dưới ──
+  const lPts   = [30] as number[]
+  const lParts = [1] as (0|1|2)[]
+  for (let i = 0; i < 1; i++) tryPlace('gold', 44, lPts[i], 'l', zone2Bot, yBot, lParts[i])
 
   // ── Kim cương r=22 × 2 viên — vùng giữa, phần 0 và 2 ──
   tryPlace('diamond', 22, 1000, 'd', zone1Bot, zone2Bot, 0)
