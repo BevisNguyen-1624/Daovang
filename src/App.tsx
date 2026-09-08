@@ -23,11 +23,16 @@ const QUESTION_BANK: { q: string; opts: string[]; a: number; diff: 's' | 'm' | '
     diff: 's'
   },
   {
-    q: 'Địa chỉ tên miền (domain) trên web để truy cập hệ thống học tập YODY GROWTH là gì?',
-    opts: ['yody.growth.io', 'growth.yody.vn', 'lms.yody.io', 'growth.yody.io'],
-    a: 3,
-    diff: 's'
-  },
+    q: 'Nếu hết thời gian làm bài mà thí sinh không nhấn nút "Nộp bài", hệ thống sẽ xử lý thế nào?',
+    opts: [
+      'Hủy kết quả bài thi',
+      'Cộng thêm 5 phút',
+      'Tự động nộp bài',
+      'Báo lỗi kết nối'
+    ],
+    a: 2,
+    diff: 'l'
+  }
   {
     q: 'Quy trình đăng nhập với tài khoản nội bộ gồm mấy bước?',
     opts: [
@@ -95,16 +100,11 @@ const QUESTION_BANK: { q: string; opts: string[]; a: number; diff: 's' | 'm' | '
 
   // ── KHÓ (1 câu = 30 điểm) ──
   {
-    q: 'Nếu hết thời gian làm bài mà thí sinh không nhấn nút "Nộp bài", hệ thống sẽ xử lý thế nào?',
-    opts: [
-      'Hủy kết quả bài thi',
-      'Cộng thêm 5 phút',
-      'Tự động nộp bài',
-      'Báo lỗi kết nối'
-    ],
-    a: 2,
-    diff: 'l'
-  }
+    q: 'Địa chỉ tên miền (domain) trên web để truy cập hệ thống học tập YODY GROWTH là gì?',
+    opts: ['yody.growth.io', 'growth.yody.vn', 'lms.yody.io', 'growth.yody.io'],
+    a: 3,
+    diff: 's'
+  },
 ]
 
 const LIVES = 3
