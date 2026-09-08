@@ -1007,7 +1007,7 @@ export default function App() {
           </div>` : `<div style="color:#a07040;margin:14px 0;font-size:14px;">Chưa có Y-Point nào được nhận</div>`}
           <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
             <button onclick="window.__resetToStart()" style="padding:13px 28px;background:linear-gradient(130deg,#f4a900,#e06000);border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;display:block;width:100%;">🔄 Chơi lại</button>
-            <a href="https://growth.yody.io" target="_blank" style="padding:13px 28px;background:linear-gradient(130deg,#27ae60,#1a7a44);border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;">🚀 TRẢI NGHIỆM NGAY TẠI ĐÂY</a>
+            <a href="https://growth.yody.io" target="_blank" style="padding:13px 28px;background:linear-gradient(130deg,#27ae60,#1a7a44);border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;">🚀 TRẢI NGHIỆM YODY GROWTH NGAY TẠI ĐÂY</a>
           </div>
         </div>
       `
