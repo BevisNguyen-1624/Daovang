@@ -84,7 +84,7 @@ const QUESTION_BANK: { q: string; opts: string[]; a: number; diff: 's' | 'm' | '
   {
     q: 'Điều kiện để học viên được hệ thống tính là "Hoàn tất" một lớp học là gì?',
     opts: [
-      'Học hết 100% các nội dung bắt buộc',
+      'Học hết 100% các nội dung bắt buộc (Bao gồm các video nội dung kiến thức, bài test, đánh giá sau khóa học)',
       'Chỉ cần làm bài kiểm tra',
       'Chỉ cần đánh giá sau khoá học',
       'Chỉ cần xem hết video'
