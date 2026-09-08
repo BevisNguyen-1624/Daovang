@@ -86,8 +86,8 @@ const QUESTION_BANK: { q: string; opts: string[]; a: number; diff: 's' | 'm' | '
     opts: [
       'Học hết 100% các nội dung bắt buộc',
       'Chỉ cần làm bài kiểm tra',
-      'Đánh giá sau khoá học',
-      'Tất cả các đáp án trên'
+      'Chỉ cần đánh giá sau khoá học',
+      'Chỉ cần xem hết video'
     ],
     a: 3,
     diff: 'm'
