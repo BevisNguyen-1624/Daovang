@@ -89,7 +89,7 @@ const QUESTION_BANK: { q: string; opts: string[]; a: number; diff: 's' | 'm' | '
       'Chỉ cần đánh giá sau khoá học',
       'Chỉ cần xem hết video'
     ],
-    a: 3,
+    a: 0,
     diff: 'm'
   },
 
