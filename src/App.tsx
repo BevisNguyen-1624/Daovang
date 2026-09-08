@@ -1009,7 +1009,6 @@ export default function App() {
               <thead><tr><th style="padding:5px 8px;border-bottom:1px solid rgba(200,140,40,.2);text-align:left;color:#c47a00;">Giờ</th><th style="padding:5px 8px;border-bottom:1px solid rgba(200,140,40,.2);text-align:left;color:#c47a00;">Câu hỏi</th><th style="padding:5px 8px;border-bottom:1px solid rgba(200,140,40,.2);text-align:left;color:#c47a00;">🪙 Y-Point</th></tr></thead>
               <tbody>${wins.map(e => `<tr><td style="padding:5px 8px;border-bottom:1px solid rgba(200,140,40,.1);">${e.time}</td><td style="padding:5px 8px;border-bottom:1px solid rgba(200,140,40,.1);max-width:180px;">${e.q}</td><td style="padding:5px 8px;border-bottom:1px solid rgba(200,140,40,.1);font-weight:700;color:#b85c00;">${e.prize}</td></tr>`).join('')}</tbody>
             </table>
-            <button onclick="window.__copyLog()" style="padding:8px 16px;background:rgba(200,140,40,.15);border:1px solid rgba(200,140,40,.3);border-radius:8px;color:#c47a00;font-size:13px;font-family:inherit;cursor:pointer;margin-top:10px;">📋 Copy dữ liệu cho BTC</button>
           </div>` : `<div style="color:#a07040;margin:14px 0;font-size:14px;">Chưa có Y-Point nào được nhận</div>`}
           <button onclick="window.__resetToStart()" style="padding:13px 28px;background:linear-gradient(130deg,#f4a900,#e06000);border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;margin-top:10px;display:block;width:100%;">🔄 Chơi lại</button>
         </div>
@@ -1018,7 +1017,7 @@ export default function App() {
     }
 
     ;(window as any).__copyLog = () => {
-      const txt = '=== BÁO CÁO ĐÀO VÀNG ONLINE ===\n' + s.btcLog.map(e =>
+      const txt = '=== BÁO CÁO KẾT QUẢ BÀI QUIZ ===\n' + s.btcLog.map(e =>
         `[${e.time}] ${e.player} | ${e.q} | TL: ${e.ans} | ${e.res} | ${e.prize}`
       ).join('\n')
       navigator.clipboard.writeText(txt).then(() => alert('✅ Đã copy!')).catch(() => prompt('Copy:', txt))
@@ -1035,8 +1034,8 @@ export default function App() {
       ov.innerHTML = `
         <div style="background:linear-gradient(145deg,#fffdf4,#fff8e1);border:2px solid rgba(200,140,40,.55);border-radius:28px;padding:40px 36px;max-width:420px;width:93%;box-shadow:0 32px 80px rgba(0,0,0,.15),0 0 50px rgba(255,200,0,.1);text-align:center;">
           <span style="font-size:56px;display:block;margin-bottom:6px;">⛏️</span>
-          <div style="font-size:30px;font-weight:800;background:linear-gradient(130deg,#f4a900,#e06000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;">ĐÀO VÀNG ONLINE</div>
-          <div style="color:#9a7040;font-size:13px;margin-bottom:26px;">🏅 Bắt vàng · Trả lời câu đố · Nhận Y-Point!</div>
+          <div style="font-size:30px;font-weight:800;background:linear-gradient(130deg,#f4a900,#e06000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;">TÌM HIỂU YODY GROWTH</div>
+          <div style="color:#9a7040;font-size:13px;margin-bottom:26px;">🏅 Kéo vàng · Trả lời câu hỏi · Nhận Y-Point!</div>
 
           <label style="font-size:13px;color:#7a4f00;margin-bottom:8px;display:block;text-align:left;">🪪 Mã nhân viên (Mã YD) <span style="color:#e74c3c;">*</span></label>
           <input id="ydInp" type="text" placeholder="VD: YD12345" maxlength="20"
@@ -1049,7 +1048,7 @@ export default function App() {
           <button id="startBtn" onclick="window.__startGame()"
             style="width:100%;padding:14px;background:linear-gradient(130deg,#f4a900,#e06000);border:none;border-radius:14px;font-size:20px;font-weight:800;font-family:inherit;color:#fff;cursor:pointer;box-shadow:0 8px 28px rgba(244,169,0,.35);display:flex;align-items:center;justify-content:center;gap:10px;">
             <span id="startBtnIcon">🎮</span>
-            <span id="startBtnText">BẮT ĐẦU CHƠI!</span>
+            <span id="startBtnText">BẮT ĐẦU THÔIIII!</span>
           </button>
         </div>
       `
