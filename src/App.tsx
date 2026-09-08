@@ -10,91 +10,101 @@ import { useEffect, useRef, useCallback } from 'react'
 // Độ khó gắn theo sz: 's' = dễ | 'm' = trung bình | 'l' = khó
 // Khi bắt vàng → rndQ() chọn câu đúng độ khó tương ứng với sz của viên vàng đó.
 const QUESTION_BANK: { q: string; opts: string[]; a: number; diff: 's' | 'm' | 'l' }[] = [
-  // ── DỄ (4 câu) — khớp viên vàng Nhỏ ──
+  // ── DỄ (5 câu = 10 điểm) ──
   {
-    q:    'Big Idea của BST AW26 lần này là gì?',
-    opts: ['POLO THỜI TRANG – TỰ TIN MỖI NGÀY', 'WEAR TO CONNECT — CHẠM MÙA MỚI – TỚI GẦN HƠN', 'CHẠM THU 2026 – ĐÁNH THỨC CẢM XÚC', 'ÁO GIÓ ĐA NĂNG – CHINH PHỤC MỌI THÁCH THỨC'],
-    a: 1, diff: 's',
+    q: 'Hệ thống học tập YODY GROWTH được triển khai nhằm với ý nghĩa gì?',
+    opts: [
+      'YODY GROWTH giúp bạn dễ dàng tìm thấy kiến thức mình cần, đúng lúc mình cần.',
+      'Học linh hoạt, chủ động theo cách của mình',
+      'Biết mình đang ở đâu → Biết mình cần cải thiện gì',
+      'Cả 3 phương án trên'
+    ],
+    a: 3,
+    diff: 's'
   },
   {
-    q:    'Hành trình từ "MẶC" đến "KẾT NỐI" bao gồm 3 khía cạnh nào?',
-    opts: ['Kết nối bản thân, Kết nối thiên nhiên, Kết nối gia đình', 'Kết nối quá khứ, Kết nối hiện tại, Kết nối tương lai', 'Kết nối công việc, Kết nối bạn bè, Kết nối xã hội', 'Kết nối bản thân, Kết nối thiên nhiên, Kết nối mọi người'],
-    a: 3, diff: 's',
+    q: 'Địa chỉ tên miền (domain) trên web để truy cập hệ thống học tập YODY GROWTH là gì?',
+    opts: ['yody.growth.io', 'growth.yody.vn', 'lms.yody.io', 'growth.yody.io'],
+    a: 3,
+    diff: 's'
   },
   {
-    q:    'Công nghệ DryX trên chất liệu Polo mang lại tính năng gì?',
-    opts: ['Chống nhăn, giữ phom', 'Chống bám bụi', 'Giữ ấm tuyệt đối', 'Thấm hút, khô nhanh'],
-    a: 3, diff: 's',
+    q: 'Quy trình đăng nhập với tài khoản nội bộ gồm mấy bước?',
+    opts: [
+      '4 bước: Nhấn vào biểu tượng App >> Chọn Đăng nhập >> Nhập tài khoản >> Lấy mã xác thực',
+      '3 bước: Chọn Đăng nhập >> Nhập tài khoản >> Nộp bài',
+      '5 bước: Mở Web >> Nhập Email >> Bật sinh trắc học >> Chọn lớp học >> Hoàn tất',
+      '2 bước: Tải App >> Quét mã QR'
+    ],
+    a: 0,
+    diff: 's'
   },
   {
-    q:    'Áo Gió Đa Năng được ứng dụng linh hoạt trong bao nhiêu bối cảnh?',
-    opts: ['3 bối cảnh', '4 bối cảnh', '5 bối cảnh', '6 bối cảnh'],
-    a: 2, diff: 's',
-  },
-
-  // ── TRUNG BÌNH (8 câu) — khớp viên vàng Vừa ──
-  {
-    q:    'Bốn nhóm đối tượng khách hàng YODY đang hướng tới là những ai?',
-    opts: ['Gia đình, Học sinh, Thể thao, Công sở', 'Trẻ em, Nam giới, Nữ giới, Người cao tuổi', 'Trung niên, Gen Z, Công sở, Du lịch', 'Gia đình, Office, Active, Gen Z'],
-    a: 3, diff: 'm',
+    q: 'Thông tin tài khoản và mật khẩu dùng để đăng nhập thuộc hệ thống nào?',
+    opts: ['Gapo', '1office', 'Unicorn', 'SMS'],
+    a: 2,
+    diff: 's'
   },
   {
-    q:    'Danh sách 5 bối cảnh sử dụng của Áo Gió Đa Năng gồm những gì?',
-    opts: ['Đi làm, Đi học, Đi chơi, Di chuyển ngoài trời, Vận động nhẹ', 'Đi làm, Đi tiệc, Tập gym, Đi phượt, Leo núi', 'Đi học, Đi biển, Đi du lịch xa, Chạy bộ marathon, Dạ hội', 'Ở nhà, Đi làm, Đi ngủ, Tập yoga, Đi chơi'],
-    a: 0, diff: 'm',
-  },
-  {
-    q:    'Áo giữ nhiệt Xtraheat có khả năng tăng nhiệt tự thân lên đến bao nhiêu độ?',
-    opts: ['+1.5 độ C', '+1.2 độ C', '+2.2 độ C', '+3.2 độ C'],
-    a: 2, diff: 'm',
-  },
-  {
-    q:    'Big Idea của dòng Áo Gió Đa Năng là gì?',
-    opts: ['ÁO GIÓ ĐA NĂNG — 5 TÍNH NĂNG – 5 BỐI CẢNH – 1 CHIẾC ÁO', 'ÁO GIÓ MÙA THU — 4 TÍNH NĂNG – 4 BỐI CẢNH', 'ÁO GIÓ 4C — THÁCH THỨC MỌI THỜI TIẾT', 'BẮT ĐẦU MÙA MỚI — 1 CHIẾC ÁO CHO TẤT CẢ'],
-    a: 0, diff: 'm',
-  },
-  {
-    q:    'Các dòng sản phẩm chính sẽ có mặt trong bộ sưu tập AW26 là gì?',
-    opts: ['Áo Gió Đa Năng', 'Áo Giữ Nhiệt Xtraheat', 'Polo Chạm Thu', 'Cả 3 phương án trên'],
-    a: 3, diff: 'm',
-  },
-  {
-    q:    '5 tính năng của Áo Gió Đa Năng chất liệu 4C bao gồm những gì?',
-    opts: ['Cản gió, Cản bụi, Giữ ấm tốt, Siêu nhẹ, Thoáng khí', 'Cản gió, Cản bụi, Giữ ấm tốt, Chống UV, Trượt nước nhẹ', 'Cản gió, Chống nước tuyệt đối, Chống UV, Siêu nhẹ, Thoáng khí', 'Giữ ấm, Cản bụi, Chống nhăn, Thấm hút, Trượt nước'],
-    a: 1, diff: 'm',
-  },
-  {
-    q:    'Dòng khóa YKK trên Áo Gió Đa Năng có đặc điểm gì?',
-    opts: ['Dòng khóa bền nhất thế giới', 'Khóa chống nước tuyệt đối', 'Khóa chìm tệp màu áo', 'Khóa tự động chốt ngắt'],
-    a: 0, diff: 'm',
-  },
-  {
-    q:    'Ý nghĩa chi tiết của những con số "5-5-1" ở Áo Gió Đa Năng là gì?',
-    opts: ['5 màu - 5 size - 1 mức giá', '5 chất liệu - 5 kiểu dáng - 1 thương hiệu', '5 tính năng - 5 bối cảnh - 1 chiếc áo', '5 ưu điểm - 5 nhược điểm - 1 giải pháp'],
-    a: 2, diff: 'm',
+    q: 'Để xem danh sách các bài tập trong lớp học, bạn chọn Tab nào?',
+    opts: ['Tab Giới thiệu', 'Tab Nội dung', 'Tab Kết quả', 'Tab Bài tập'],
+    a: 3,
+    diff: 's'
   },
 
-  // ── KHÓ (4 câu) — khớp viên vàng To ──
+  // ── TRUNG BÌNH (4 câu = 15 điểm) ──
   {
-    q:    'Anh Nam (28 tuổi) thích tập thể dục nhẹ buổi chiều, hay mặc quần active short. Anh thuộc nhóm KH nào và nên dùng sản phẩm nào?',
-    opts: ['Nhóm OFFICE - Casual Polo', 'Nhóm GEN Z - Casual Polo', 'Nhóm ACTIVE - Active Polo', 'Nhóm GIA ĐÌNH - Active Polo'],
-    a: 2, diff: 'l',
+    q: 'Theo tài liệu hướng dẫn, có bao nhiêu cách để học viên vào lớp học mình mong muốn?',
+    opts: ['1 cách', '3 cách', '2 cách', '4 cách'],
+    a: 2,
+    diff: 'm'
   },
   {
-    q:    'Chị Mai tìm mua Polo tặng chồng đi làm văn phòng, thích vải bền dễ chăm sóc, phối quần âu. Chồng chị thuộc nhóm KH nào và hợp dòng sản phẩm nào?',
-    opts: ['Nhóm GIA ĐÌNH - Active Polo', 'Nhóm OFFICE - Casual Polo', 'Nhóm GEN Z - Casual Polo', 'Nhóm ACTIVE - Active Polo'],
-    a: 1, diff: 'l',
+    q: 'Tab "THÔNG BÁO" trong màn hình chi tiết lớp học dùng để làm gì?',
+    opts: [
+      'Hiển thị các thông báo của lớp học.',
+      'Hiển thị thông tin giới thiệu của lớp học',
+      'Hiển thị bảng điểm học viên',
+      'Hiển thị bảng xếp hạng'
+    ],
+    a: 0,
+    diff: 'm'
   },
   {
-    q:    'Sinh viên Gen Z di chuyển bằng xe máy đi học, đi chơi, cần sản phẩm có khả năng chống nắng và trượt nước nhẹ khi mưa bất chợt. Bạn nên giới thiệu dòng nào?',
-    opts: ['Áo gió chất liệu 3C', 'Áo gió chất liệu 4C', 'Casual Polo', 'Áo giữ nhiệt cơ bản cổ cao'],
-    a: 1, diff: 'l',
+    q: 'Dấu sao (*) đứng sau tên một nội dung trong lớp học có ý nghĩa gì?',
+    opts: [
+      'Nội dung bắt buộc hoàn thành',
+      'Bài học được đánh giá 5 sao',
+      'Nội dung học tùy chọn',
+      'Bài học đã hoàn thành'
+    ],
+    a: 0,
+    diff: 'm'
   },
   {
-    q:    'Khách tâm sự: "Mùa thu đông tôi ngại mặc nhiều áo vì cộm và sợ lộ khuyết điểm". Sản phẩm/thiết kế nào giải quyết đúng nhu cầu này?',
-    opts: ['Áo giữ nhiệt cơ bản', 'Active Polo', 'Áo gió chất liệu 3C', 'Áo giữ nhiệt thời trang 1 lớp'],
-    a: 3, diff: 'l',
+    q: 'Điều kiện để học viên được hệ thống tính là "Hoàn tất" một lớp học là gì?',
+    opts: [
+      'Học hết 100% các nội dung bắt buộc',
+      'Chỉ cần làm bài kiểm tra',
+      'Đánh giá sau khoá học',
+      'Tất cả các đáp án trên'
+    ],
+    a: 3,
+    diff: 'm'
   },
+
+  // ── KHÓ (1 câu = 30 điểm) ──
+  {
+    q: 'Nếu hết thời gian làm bài mà thí sinh không nhấn nút "Nộp bài", hệ thống sẽ xử lý thế nào?',
+    opts: [
+      'Hủy kết quả bài thi',
+      'Cộng thêm 5 phút',
+      'Tự động nộp bài',
+      'Báo lỗi kết nối'
+    ],
+    a: 2,
+    diff: 'l'
+  }
 ]
 
 const LIVES = 3
@@ -161,19 +171,19 @@ function makeObjs(_CW: number, _CH: number, ox: number, maxRope: number): Obj[] 
     return false
   }
 
-  // ── Vàng Nhỏ r=20 × 4 viên (5Y) — vùng trên, phủ đều 3 phần ──
-  const sParts = shuffle([0,1,1,2]) as (0|1|2)[]
-  for (let i = 0; i < 4; i++) tryPlace('gold', 20, 5, 's', yTop, zone1Bot, sParts[i])
+  // ── Vàng Nhỏ r=20 × 5 viên (10Y) — vùng trên, phủ đều 3 phần ──
+  const sParts = shuffle([0,1,1,2,2]) as (0|1|2)[]
+  for (let i = 0; i < 5; i++) tryPlace('gold', 20, 10, 's', yTop, zone1Bot, sParts[i])
 
-  // ── Vàng Vừa r=30 × 4 viên (10-15Y) — vùng giữa ──
-  const mPts   = shuffle([15, 10, 10, 10]) as number[]
+  // ── Vàng Vừa r=30 × 4 viên (15Y) — vùng giữa ──
+  const mPts   = shuffle([15, 15, 15, 15]) as number[]
   const mParts = shuffle([0,1,1,2]) as (0|1|2)[]
   for (let i = 0; i < 4; i++) tryPlace('gold', 30, mPts[i], 'm', zone1Bot, zone2Bot, mParts[i])
 
-  // ── Vàng To r=44 × 4 viên (15-30Y) — vùng dưới ──
-  const lPts   = shuffle([30, 30, 15, 15]) as number[]
-  const lParts = shuffle([0,1,1,2]) as (0|1|2)[]
-  for (let i = 0; i < 4; i++) tryPlace('gold', 44, lPts[i], 'l', zone2Bot, yBot, lParts[i])
+  // ── Vàng To r=44 × 1 viên (30Y) — vùng dưới ──
+  const lPts   = [30] as number[]
+  const lParts = [1] as (0|1|2)[]
+  for (let i = 0; i < 1; i++) tryPlace('gold', 44, lPts[i], 'l', zone2Bot, yBot, lParts[i])
 
   // ── Kim cương r=22 × 2 viên — vùng giữa, phần 0 và 2 ──
   tryPlace('diamond', 22, 1000, 'd', zone1Bot, zone2Bot, 0)
@@ -1001,11 +1011,10 @@ export default function App() {
             </table>
             <button onclick="window.__copyLog()" style="padding:8px 16px;background:rgba(200,140,40,.15);border:1px solid rgba(200,140,40,.3);border-radius:8px;color:#c47a00;font-size:13px;font-family:inherit;cursor:pointer;margin-top:10px;">📋 Copy dữ liệu cho BTC</button>
           </div>` : `<div style="color:#a07040;margin:14px 0;font-size:14px;">Chưa có Y-Point nào được nhận</div>`}
-          <button onclick="window.__resetToStart()" style="padding:13px 28px;background:linear-gradient(130deg,#f4a900,#e06000);border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;margin-top:10px;display:block;width:100%;">🔄 Chơi lại</button>
-          <a href="https://growth.yody.io" target="_blank" rel="noopener noreferrer"
-            style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;padding:13px 28px;background:linear-gradient(130deg,#16a34a,#15803d);border:none;border-radius:12px;color:#fff;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;text-decoration:none;box-shadow:0 6px 20px rgba(22,163,74,.35);">
-            🚀 TRẢI NGHIỆM NGAY TẠI ĐÂY
-          </a>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
+            <button onclick="window.__resetToStart()" style="padding:13px 28px;background:linear-gradient(130deg,#f4a900,#e06000);border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;display:block;width:100%;">🔄 Chơi lại</button>
+            <a href="https://growth.yody.io" target="_blank" style="padding:13px 28px;background:linear-gradient(130deg,#27ae60,#1a7a44);border:none;border-radius:12px;color:#fff;font-size:17px;font-weight:800;font-family:inherit;cursor:pointer;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;">🚀 TRẢI NGHIỆM NGAY TẠI ĐÂY</a>
+          </div>
         </div>
       `
       ov.style.display = 'flex'
@@ -1029,8 +1038,8 @@ export default function App() {
       ov.innerHTML = `
         <div style="background:linear-gradient(145deg,#fffdf4,#fff8e1);border:2px solid rgba(200,140,40,.55);border-radius:28px;padding:40px 36px;max-width:420px;width:93%;box-shadow:0 32px 80px rgba(0,0,0,.15),0 0 50px rgba(255,200,0,.1);text-align:center;">
           <span style="font-size:56px;display:block;margin-bottom:6px;">⛏️</span>
-          <div style="font-size:30px;font-weight:800;background:linear-gradient(130deg,#f4a900,#e06000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;">TÌM HIỂU YODY GROWTH</div>
-          <div style="color:#9a7040;font-size:13px;margin-bottom:26px;">🏅 Lụm vàng · Trả lời câu hỏi · Nhận Y-Point!</div>
+          <div style="font-size:30px;font-weight:800;background:linear-gradient(130deg,#f4a900,#e06000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;">ĐÀO VÀNG ONLINE</div>
+          <div style="color:#9a7040;font-size:13px;margin-bottom:26px;">🏅 Bắt vàng · Trả lời câu đố · Nhận Y-Point!</div>
 
           <label style="font-size:13px;color:#7a4f00;margin-bottom:8px;display:block;text-align:left;">🪪 Mã nhân viên (Mã YD) <span style="color:#e74c3c;">*</span></label>
           <input id="ydInp" type="text" placeholder="VD: YD12345" maxlength="20"
